@@ -10,7 +10,7 @@
 
 # Chronos
 
-Chronos is a trading bot, written in python that allows users to place trades with Kairos and tradingview's webhook alerts.
+Chronos is a trading bot, written in python that allows users to place trades with [Kairos](https://github.com/timelyart/Kairos) and tradingview's webhook alerts.
 
 ---
 
