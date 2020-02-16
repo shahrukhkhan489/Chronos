@@ -20,7 +20,7 @@ Chronos is a trading bot, written in python that allows users to place trades wi
 
 * Install setuptools 
 ```
-pip install setuptools<br>
+pip install setuptools
 pip install --upgrade setuptools   
 ```
 * Install Chronos dependencies by runing the following command from the Chronos directory:
