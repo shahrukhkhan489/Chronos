@@ -1,35 +1,36 @@
-![demopic](img/webhooks_bot_logo.png)
+![demopic](img/chronos_logo.png)
 
-![](https://img.shields.io/github/license/robswc/tradingview-webhooks-bot?style=for-the-badge)
-![](https://img.shields.io/github/repo-size/robswc/tradingview-webhooks-bot?style=for-the-badge)
-![](https://img.shields.io/github/commit-activity/y/robswc/tradingview-webhooks-bot?style=for-the-badge)
-![](https://img.shields.io/twitter/follow/robswc?style=for-the-badge)
-
-
+![](https://img.shields.io/github/license/timelyart/chronos?style=for-the-badge)
+![](https://img.shields.io/github/repo-size/timelyart/chronos?style=for-the-badge)
+![](https://img.shields.io/github/commit-activity/y/timelyart/chronos?style=for-the-badge)
+![](https://img.shields.io/twitter/follow/timelyart?style=for-the-badge)
 
 
-# Tradingview-webhooks-bot
 
-tradingview-webhooks-bot is a trading bot, written in python that allows users to place trades with tradingview's webhook alerts.
+
+# Chronos
+
+Chronos is a trading bot, written in python that allows users to place trades with Kairos and tradingview's webhook alerts.
 
 ---
 
-## Quickstart Using Pipenv
-
-Pipenv is a tool that helps users set virtual environments and install dependencies with ease. There are many benefits to creating a virtual environment, especially for those that haev other projects running on the same server.
+## Quickstart
 
 ### Install pipenv and initiate virtual environment
 
-1. Install pipenv `sudo apt install pipenv`
-2. Once pipenv is installed, I recommend that you [get familiar with it](https://github.com/pypa/pipenv).
-3. Navigate to the folder where you cloned the repo. You should see `Pipfile` and `Pipfile.lock` files.
-4. Run command `pipenv install`
-5. The dependencies required to get started should now be installed. Check by running command `pipenv graph` - You should see flask and ccxt.
-6. If you want to install any other dependencies, or if you get an error that you're missing a depedency, simply use command `pipenv install <dependency>`
-7. Starting the virtual environment: `pipenv shell`
-8. Starting the flask app: `python webhook-bot.py`
-
-There you go! Nice and simple Python version and virtualenv management.
+* Install setuptools 
+```
+pip install setuptools<br>
+pip install --upgrade setuptools   
+```
+* Install dependencies by runing the following command from the Chronos directory:
+```
+python setup.py install
+```
+* Starting the flask app by running the following command from the Chronos directory: 
+```
+python main.py
+```
 
 ### Using ngrok for webook data retrieval
 
