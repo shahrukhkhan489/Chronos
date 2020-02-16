@@ -27,7 +27,7 @@ pip install --upgrade setuptools
 ```
 python setup.py install
 ```
-* Starting the flask app by running the following command from the Chronos directory:
+* Start the flask app by running the following command from the Chronos directory:
 ```
 python main.py
 ```
