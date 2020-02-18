@@ -2,4 +2,6 @@
 /ngrok.exe
 /img/chronos.xcf
 /log/
+/.
+/venv
 /.idea
