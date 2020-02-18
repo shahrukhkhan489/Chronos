@@ -1,4 +1,5 @@
 # File: tools.py
+import json
 import math
 import os
 import re
@@ -8,8 +9,9 @@ from collections import OrderedDict
 from configparser import RawConfigParser
 from datetime import datetime, timedelta
 from pathlib import Path
+import hashlib
 
-import debug
+from chronos.tools import debug
 import psutil
 import yaml
 
@@ -30,7 +32,7 @@ def shutdown_logging():
 
 
 def get_config():
-    script_dir = Path(Path(os.path.abspath(__file__)).parent).parent
+    script_dir = Path(Path(Path(os.path.abspath(__file__)).parent).parent).parent
     config = RawConfigParser(allow_no_value=True, strict=False, empty_lines_in_values=False, dict_type=ConfigParserMultiValues, converters={"list": ConfigParserMultiValues.getlist})
     config_file = os.path.join(script_dir, "chronos.cfg")
     if os.path.exists(config_file):
@@ -288,3 +290,9 @@ def get_operating_system():
     elif os.name == 'posix':
         result = 'linux'
     return result
+
+
+# Generate unique token from pin.  This adds a marginal amount of security.
+def get_token(password):
+    token = hashlib.sha224(password.encode('utf-8'))
+    return token.hexdigest()

@@ -9,10 +9,11 @@ expect to update this as much as possible to add features as they become availab
 Until then, if you run into any bugs let me know!
 """
 from flask import Flask, request, abort
-from chronos import auth, actions
-from chronos.tools import debug
+from chronos import actions
+from chronos.tools import debug, tools
 
 log = debug.create_log()
+config = tools.get_config()
 
 # Create Flask object called app.
 app = Flask(__name__)
@@ -26,11 +27,13 @@ def root():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    password = config.get('authentication', 'password')
     if request.method == 'POST':
         # Parse the string data from tradingview into a python dict
+        log.info(request.get_data(as_text=True))
         data = actions.parse_webhook(request.get_data(as_text=True))
         # Check that the key is correct
-        if auth.get_token() == data['key']:
+        if (not password) or tools.get_token(password) == data['key']:
             log.info(' [Alert Received] ')
             log.info('POST Received: {}'.format(data))
             actions.send_order(data)
@@ -42,4 +45,6 @@ def webhook():
 
 
 def run():
-    app.run(debug=True, use_reloader=False)
+
+    app.run()
+    # app.run(debug=True, use_reloader=False)

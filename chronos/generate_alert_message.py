@@ -1,4 +1,4 @@
-from auth import get_token
+from chronos.tools import tools
 
 """
 This function will take a lot of the tedious work out of generating alert messages!
@@ -21,7 +21,11 @@ def generate_alert_message():
         price = input()
     else:
         price = 'None'
-    key = get_token()
+    config = tools.get_config()
+    password = config.get('authentication', 'password')
+    key = ""
+    if password:
+        key = tools.get_token(password)
 
     print("Copy:\n")
     output = {"type": type, "side": side, "amount": amount, "symbol": symbol, "price": price, "key": key}

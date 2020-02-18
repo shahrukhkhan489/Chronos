@@ -1,7 +1,7 @@
 # source: http://stackoverflow.com/a/1557906/6009280
 import atexit
 from time import time, strftime, localtime
-from tools import tools
+from chronos.tools import tools
 
 
 def seconds_to_str(elapsed=None):

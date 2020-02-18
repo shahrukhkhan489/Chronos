@@ -1,4 +1,5 @@
-ngrok.exe
+/chronos.cfg
+/ngrok.exe
 /img/chronos.xcf
 /log/
 /.idea
