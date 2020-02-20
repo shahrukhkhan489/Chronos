@@ -1,5 +1,4 @@
 # File: tools.py
-import json
 import math
 import os
 import re
@@ -12,7 +11,6 @@ from pathlib import Path
 import hashlib
 
 from chronos.tools import debug
-import psutil
 import yaml
 
 float_precision = 8
@@ -261,26 +259,6 @@ def wait_for(condition_function, timeout=5):
     raise Exception(
         'Timeout waiting for {}'.format(condition_function.__name__)
     )
-
-
-def path_in_use(path, log=None):
-    for process in psutil.process_iter():
-        try:
-            if process.name().find('chrome') >= 0:
-                files = process.open_files()
-                if files:
-                    for f in files:
-                        # log.info("{}\t{}".format(message, f.path))
-                        if f.path.find(path) >= 0:
-                            return True
-        # This catches a race condition where a process ends
-        # before we can examine its files
-        except Exception as e:
-            if log:
-                log.exception(e)
-            else:
-                debug.log("ERROR", "path_in_use", e)
-    return False
 
 
 def get_operating_system():
