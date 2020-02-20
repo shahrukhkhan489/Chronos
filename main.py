@@ -1,15 +1,9 @@
 import threading
-from time import sleep
-from subprocess import check_output
 from chronos import webhook_bot
 
 
 def start_flask():
     webhook_bot.run()
-
-
-def list_ngrok():
-    webhook_bot.log.info(check_output("ngrok http 5000", shell=True))
 
 
 def main():
@@ -26,9 +20,6 @@ def main():
     # start a thread with the server
     webhook_bot.log.info("creating server")
     threading.Thread(target=start_flask).start()
-    sleep(1)
-    # list the server with ngrok
-    threading.Thread(target=list_ngrok).start()
     webhook_bot.log.info("server listed with ngrok")
 
 

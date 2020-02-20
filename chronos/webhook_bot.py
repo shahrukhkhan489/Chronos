@@ -10,10 +10,11 @@ Until then, if you run into any bugs let me know!
 """
 from flask import Flask, request, abort
 from chronos import actions
-from chronos.tools import debug, tools
+from chronos.tools import debug, tools, flask_ngrok
 
 log = debug.create_log()
 config = tools.get_config()
+ngrox_url = None
 
 # Create Flask object called app.
 app = Flask(__name__)
@@ -45,6 +46,6 @@ def webhook():
 
 
 def run():
-
+    flask_ngrok.start_ngrok()
     app.run()
     # app.run(debug=True, use_reloader=False)
