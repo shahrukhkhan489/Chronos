@@ -1,6 +1,6 @@
 import ast
 import ccxt
-from chronos.model import config, log
+from manage import config, log
 
 
 def send_order(data):

@@ -15,30 +15,7 @@ from flask import request, abort, render_template, Markup
 from chronos.libs import tools, debug
 from chronos.libs.json2html import json2html
 from chronos import data_helper
-from chronos.model import app, config
-
-log = debug.create_log()
-
-# Create Flask object called app.
-
-#     db = SQLAlchemy(app)
-#     migrate = Migrate(app, db)
-#     manager = Manager(app)
-#     manager.add_command('db', MigrateCommand)
-#     from chronos import model
-#     model.update_schema()
-#     # model.create()
-#     from chronos import model
-    # model.delete()
-    # model.create()
-
-
-# Setup jinja2
-# print(os.path.join(os.path.dirname(__file__), "static"))
-# loader = jinja2.FileSystemLoader(
-#         [os.path.join(os.path.dirname(__file__), "static"),
-#          os.path.join(os.path.dirname(__file__), "templates")])
-# environment = jinja2.Environment(loader=loader)
+from manage import app, config, log
 
 
 @app.route('/')
