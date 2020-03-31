@@ -1,11 +1,6 @@
 import ast
 import ccxt
-from chronos.tools import tools
-
-config = tools.get_config()
-log = tools.create_log()
-log.setLevel(20)
-log.setLevel(config.getint('logging', 'level'))
+from chronos.model import config, log
 
 
 def send_order(data):
@@ -197,9 +192,6 @@ def get_exchange_settings(exchange_name):
     :param exchange_name: the name of the exchange, e.g. Kraken (case insensitive)
     :return: exchange settings if present, false otherwise
     """
-    global config
-    config = tools.get_config()
-
     exchange = exchange_name.lower()
     settings = False
     if config.has_section(exchange):

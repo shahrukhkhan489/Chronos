@@ -41,7 +41,7 @@ def load_console_log(browser, log_type):
 
 def write_console_log(browser, mode='a'):
     import os
-    from chronos.tools import tools
+    from chronos.libs import tools
     from datetime import datetime
     from datetime import timedelta
 

@@ -1,6 +1,26 @@
-# from flask_sqlalchemy import SQLAlchemy
-from web.controller import db, migrate, manager
+import os
+from flask import Flask
+from flask_migrate import Migrate, MigrateCommand
+from flask_script import Command, Manager
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from chronos.libs import tools
+
+config = tools.get_config()
+log = tools.create_log()
+log.setLevel(20)
+log.setLevel(config.getint('logging', 'level'))
+
+app = Flask(__name__)
+if config.has_option('postgresql', 'host') and config.has_option('postgresql', 'database') and config.has_option('postgresql', 'user') and config.has_option('postgresql', 'password'):
+    uri = 'postgresql://{}:{}@{}/{}'.format(config.get('postgresql', 'user'), config.get('postgresql', 'password'), config.get('postgresql', 'host'), config.get('postgresql', 'database'))
+    app.config['SQLALCHEMY_DATABASE_URI'] = uri
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
+log.info("test")
 
 
 class User(db.Model):
@@ -29,7 +49,7 @@ class User(db.Model):
 class Exchange(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
-    ccxt_name = db.Column(db.String, unique=True, nullable=False)
+    # ccxt_name = db.Column(db.String, unique=True, nullable=False)
 
     def __repr__(self):
         return '<Exchange %r>' % self.name
@@ -55,12 +75,26 @@ class APIKey(db.Model):
 
 
 def create():
+    print('create')
     db.create_all()
 
 
 def delete():
+    print('drop')
     db.drop_all()
 
 
-def update_schema():
+def init():
+    os.system('db init')
+
+
+class Update(Command):
+
+    def run(self):
+        os.system('python model.py db migrate')
+        os.system('python model.py db upgrade')
+
+
+if __name__ == '__main__':
+    manager.add_command('update', Update())
     manager.run()

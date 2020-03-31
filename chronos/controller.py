@@ -11,35 +11,27 @@ expect to update this as much as possible to add features as they become availab
 Until then, if you run into any bugs let me know!
 """
 import json
-from flask import Flask, request, abort, render_template, Markup
-from flask_migrate import Migrate, MigrateCommand
-from flask_script import Manager
-from flask_sqlalchemy import SQLAlchemy
-from chronos.tools import debug, tools
-from chronos.tools.json2html import json2html
+from flask import request, abort, render_template, Markup
+from chronos.libs import tools, debug
+from chronos.libs.json2html import json2html
 from chronos import data_helper
+from chronos.model import app, config
 
 log = debug.create_log()
-config = tools.get_config()
 
 # Create Flask object called app.
-app = Flask(__name__)
 
-if config.has_option('postgresql', 'host') and config.has_option('postgresql', 'database') and config.has_option('postgresql', 'user') and config.has_option('postgresql', 'password'):
-    """
-    Although this is the view, relaying user requests to the controller, we need to generate the model from here as 
-    Flask-SQLAlchemy needs the Flask app as a parameter. 
-    """
-    uri = 'postgresql://{}:{}@{}/{}'.format(config.get('postgresql', 'user'), config.get('postgresql', 'password'),                                            config.get('postgresql', 'host'), config.get('postgresql', 'database'))
-    app.config['SQLALCHEMY_DATABASE_URI'] = uri
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db = SQLAlchemy(app)
-    migrate = Migrate(app, db)
-    manager = Manager(app)
-    manager.add_command('db', MigrateCommand)
-    from chronos import model
-    model.update_schema()
+#     db = SQLAlchemy(app)
+#     migrate = Migrate(app, db)
+#     manager = Manager(app)
+#     manager.add_command('db', MigrateCommand)
+#     from chronos import model
+#     model.update_schema()
+#     # model.create()
+#     from chronos import model
+    # model.delete()
     # model.create()
+
 
 # Setup jinja2
 # print(os.path.join(os.path.dirname(__file__), "static"))
@@ -94,6 +86,12 @@ def uri_example(username):
     return render_template('index.html', username=username)
 
 
+# @app.route('/static/<file>', methods=['GET'])
+# def static(file):
+#     log.info(file)
+#     return render_template_string('background-color: red;')
+
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     password = config.get('authentication', 'password')
@@ -113,7 +111,12 @@ def webhook():
         abort(400)
 
 
-def run():
+# @app.route('/chronos/web')
+#
+# with app.test_request_context():
+#     print(url_for('static', filename='style.css'))
+#
 
+def run():
     app.run()
     # app.run(debug=True, use_reloader=False)

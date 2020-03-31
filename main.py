@@ -1,8 +1,7 @@
 import threading
 from time import sleep
 from subprocess import check_output
-from chronos import data_helper
-from web import controller
+from chronos import data_helper, controller
 
 
 def start_flask():
@@ -14,7 +13,7 @@ def list_ngrok():
 
 
 def main():
-    from chronos.tools import tools
+    from chronos.libs import tools
     config = tools.get_config()
     password = config.get('authentication', 'password')
     key = ""
