@@ -1,4 +1,5 @@
 import os
+# from alembic import context
 from flask import Flask
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Command, Manager
@@ -17,6 +18,9 @@ if config.has_option('postgresql', 'host') and config.has_option('postgresql', '
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+# context.configure(
+#     compare_server_default=True
+# )
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 log.info("test")
@@ -29,12 +33,13 @@ log.info("test")
 # environment = jinja2.Environment(loader=loader)
 
 
-class Update(Command):
-    def run(self):
-        os.system('python model.py db migrate')
-        os.system('python model.py db upgrade')
-
-
 if __name__ == '__main__':
-    manager.add_command('update', Update())
-    manager.run()
+    from chronos import model
+    model.manage()
+
+
+#
+# model.delete()
+# model.create()
+# def create():
+

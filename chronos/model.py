@@ -1,6 +1,8 @@
 import os
+
+from flask_script import Command
 from werkzeug.security import generate_password_hash, check_password_hash
-from manage import db
+from manage import db, manager
 
 
 class User(db.Model):
@@ -66,3 +68,16 @@ def delete():
 
 def init():
     os.system('db init')
+
+
+class Update(Command):
+
+    def run(self):
+        os.system('python model.py db migrate')
+        os.system('python model.py db upgrade')
+
+
+def manage():
+    print("running alembic")
+    manager.add_command('update', Update())
+    manager.run()
