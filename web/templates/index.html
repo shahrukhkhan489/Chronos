@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+{% block title %}Index {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+    <h1>Hello World</h1>
+    <p>Welcome to my site.</p>
+    <p>{{ forms.input('username') }}</p>
+    <p>{{ forms.input('password', type='password') }}</p>
+    {% if username %}
+        {{ username }}
+    {% endif %}
+    {% if message %}
+        {{ message }}
+    {% endif %}
+    {% if list_example %}
+        <ul>
+            {% for name in list_example %}
+            <li>{{ name }}</li>
+            {% endfor %}
+        </ul>
+
+        <ol>
+            {% for name in list_example %}
+            <li>{{ name }}</li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+{% endblock %}

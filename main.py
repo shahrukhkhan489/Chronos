@@ -1,15 +1,16 @@
 import threading
 from time import sleep
 from subprocess import check_output
-from chronos import webhook_bot
+from chronos import data_helper
+from web import controller
 
 
 def start_flask():
-    webhook_bot.run()
+    controller.run()
 
 
 def list_ngrok():
-    webhook_bot.log.info(check_output("ngrok http 5000", shell=True))
+    controller.log.info(check_output("ngrok http 5000", shell=True))
 
 
 def main():
@@ -19,17 +20,29 @@ def main():
     key = ""
     if password:
         key = tools.get_token(password)
+
+    # if config.has_option('postgresql', 'host') and config.has_option('postgresql', 'database') and config.has_option('postgresql', 'user') and config.has_option('postgresql', 'password'):
+    #     try:
+    #         db.connect(config.get('postgresql', 'host'), config.get('postgresql', 'database'), config.get('postgresql', 'user'), config.get('postgresql', 'password'))
+    #     except Exception as e:
+    #         print(e)
+    # test_kraken()
     output = "{'exchange': '{{exchange}}', 'type': 'market', 'side': 'buy', 'amount': 1, 'symbol': '{{ticker}}', 'price': {{close}}, 'key': '" + key + "'}"
     print()
-    webhook_bot.log.info("Example webhook message: {}".format(output))
+    controller.log.info("Example webhook message: {}".format(output))
     print()
     # start a thread with the server
-    webhook_bot.log.info("creating server")
+    controller.log.info("creating server")
     threading.Thread(target=start_flask).start()
     sleep(1)
     # list the server with ngrok
     threading.Thread(target=list_ngrok).start()
-    webhook_bot.log.info("server listed with ngrok")
+    controller.log.info("server listed with ngrok")
+
+
+def test_kraken():
+    print(data_helper.get_open_orders('kraken'))
+    print(data_helper.get_closed_orders('kraken'))
 
 
 main()

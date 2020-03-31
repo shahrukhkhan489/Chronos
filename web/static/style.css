@@ -1,0 +1,14 @@
+body, .table, .table .table {
+    background-color: lightblue;
+}
+
+button.collapsible {
+    background-color: lightblue;
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+}
