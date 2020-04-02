@@ -10,6 +10,7 @@
     <title>{% block title %}{% endblock %} - Chronos</title>
     {% endblock %}
   </head>
+  {% include 'includes/header.html' %}
   <body>
   {% import 'includes/forms.macro' as forms %}
   <div id="content">{% block content %}{% endblock %}</div>

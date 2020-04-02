@@ -1,6 +1,6 @@
 import ast
 import ccxt
-from manage import config, log
+from . import config, log
 
 
 def send_order(data):

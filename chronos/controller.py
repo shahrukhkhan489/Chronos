@@ -11,11 +11,12 @@ expect to update this as much as possible to add features as they become availab
 Until then, if you run into any bugs let me know!
 """
 import json
-from flask import request, abort, render_template, Markup
-from chronos.libs import tools, debug
+from flask import request, abort, render_template, Markup, make_response
+from chronos.libs import tools
 from chronos.libs.json2html import json2html
 from chronos import data_helper
-from manage import app, config, log
+from . import config, log
+from flask import current_app as app
 
 
 @app.route('/')
@@ -33,8 +34,10 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/orders')
+@app.route('/orders', methods=['GET'])
 def orders():
+    if request.method != 'GET':
+        return make_response('Malformed request', 400)
     open_orders = json.dumps(data_helper.get_open_orders('kraken'))
     closed_orders = json.dumps(data_helper.get_closed_orders('kraken'))
     open_orders_table = Markup(json2html.convert(json=open_orders, table_attributes='class="table table-condensed table-bordered table-hover"'))
@@ -47,8 +50,10 @@ def page_not_found(e):
     return render_template('404.html', exception=e), 404
 
 
-@app.route('/status')
+@app.route('/status', methods=['GET'])
 def status():
+    if request.method != 'GET':
+        return render_template('404.html', exception='Malformed request'), 400
     return render_template('index.html', message='online')
 
 
@@ -61,12 +66,6 @@ def list_example():
 @app.route('/example/user/<username>')
 def uri_example(username):
     return render_template('index.html', username=username)
-
-
-# @app.route('/static/<file>', methods=['GET'])
-# def static(file):
-#     log.info(file)
-#     return render_template_string('background-color: red;')
 
 
 @app.route('/webhook', methods=['POST'])
@@ -88,12 +87,5 @@ def webhook():
         abort(400)
 
 
-# @app.route('/chronos/web')
-#
-# with app.test_request_context():
-#     print(url_for('static', filename='style.css'))
-#
-
-def run():
-    app.run()
-    # app.run(debug=True, use_reloader=False)
+# def run():
+#     app.run()

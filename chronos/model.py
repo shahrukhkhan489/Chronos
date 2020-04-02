@@ -2,7 +2,8 @@ import os
 
 from flask_script import Command
 from werkzeug.security import generate_password_hash, check_password_hash
-from manage import db, manager
+from . import db, manager
+# from manage import db, manager
 
 
 class User(db.Model):
@@ -56,18 +57,31 @@ class APIKey(db.Model):
         return '<APIKey %r>' % self.api_key
 
 
+class ExchangeData(db.Model):
+    """
+    Aggregates all data that comes from exchanges such as orders and positions
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.TIMESTAMP)
+    request = db.Column(db.String)  # we might need to hash this since we don't want to see API key/secret information
+    data = db.Column(db.UnicodeText)  # we might need LargeBinary here instead
+    data_type = db.Column(db.String(20))  # open_orders, open_positions, closed_orders, closed_positions, etc
+    data_type_is_open = db.Column(db.Boolean)  # open vs closed, i.e. 'open' orders/positions vs 'closed' orders/positions
+    exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'), nullable=False)
+    exchange = db.relationship('Exchange', backref=db.backref('exchange', lazy=True))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('user', lazy=True))
+
+    def __repr__(self):
+        return '<Exchange %r>' % self.exchange.name
+
+
 def create():
-    print('create')
     db.create_all()
 
 
 def delete():
-    print('drop')
     db.drop_all()
-
-
-def init():
-    os.system('db init')
 
 
 class Update(Command):
@@ -78,6 +92,5 @@ class Update(Command):
 
 
 def manage():
-    print("running alembic")
     manager.add_command('update', Update())
     manager.run()
