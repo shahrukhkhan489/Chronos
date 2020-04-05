@@ -2,14 +2,15 @@ from flask import Flask
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_wtf import CSRFProtect
+
 from chronos.libs import tools
-# from flask_redis import FlaskRedis
 
 # Globally accessible libraries
 db = SQLAlchemy()
 migrate = Migrate()
 manager = Manager()
-# r = FlaskRedis()
 
 config = tools.get_config()
 log = tools.create_log()
@@ -21,13 +22,11 @@ def create_app():
     """Initialize the core application."""
     app = Flask(__name__, instance_relative_config=False)
     # app = Flask(__name__, template_folder="chronos/templates", static_folder="chronos/static")
-    if config.has_option('postgresql', 'host') and config.has_option('postgresql', 'database') and config.has_option(
-            'postgresql', 'user') and config.has_option('postgresql', 'password'):
-        uri = 'postgresql://{}:{}@{}/{}'.format(config.get('postgresql', 'user'), config.get('postgresql', 'password'),
-                                                config.get('postgresql', 'host'), config.get('postgresql', 'database'))
-        app.config['SQLALCHEMY_DATABASE_URI'] = uri
+    if config.has_option('security', 'webserver_password'):
+        app.config['SECRET_KEY'] = config.get('security', 'webserver_password')
+    if config.has_option('database', 'connection_string'):
+        app.config['SQLALCHEMY_DATABASE_URI'] = config.get('database', 'connection_string')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
     # app.config.from_object('config.Config')
 
     # Initialize Plugins
@@ -36,12 +35,24 @@ def create_app():
     manager.__init__(app)
     manager.add_command('db', MigrateCommand)
 
-    # r.init_app(app)
+    login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
+
+    CSRFProtect(app)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        from .model import User
+        # since the user_id is just the primary key of our user table, use it in the query for the user
+        return User.query.get(int(user_id))
 
     with app.app_context():
         # Include our Routes
-        from . import controller
-        # Register Blueprints @ see https://hackersandslackers.com/flask-blueprints
-        # app.register_blueprint(auth.auth_bp)
-        # app.register_blueprint(admin.admin_bp)
+        # blueprint for auth routes in our app
+        from chronos.controllers.auth import auth as auth_blueprint
+        app.register_blueprint(auth_blueprint)
+        # blueprint for non-auth parts of app
+        from chronos.controllers.main import main as main_blueprint
+        app.register_blueprint(main_blueprint)
         return app

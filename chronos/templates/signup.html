@@ -1,32 +1,26 @@
-{% extends 'layout.html' %}
-{% block title %}Signup {% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
-{% block content %}
-    <h1>Signup</h1>
-    <p>{{ forms.input('username') }}</p>
-    <p>{{ forms.input('email') }}</p>
-    <p>{{ forms.input('email2') }}</p>
-    <p>{{ forms.input('password', type='password') }}</p>
-    <p>{{ forms.input('password2', type='password') }}</p>
-    {% if username %}
-        {{ username }}
-    {% endif %}
-    {% if message %}
-        {{ message }}
-    {% endif %}
-    {% if list_example %}
-        <ul>
-            {% for name in list_example %}
-            <li>{{ name }}</li>
-            {% endfor %}
-        </ul>
+{% extends "layout.html" %}
+{% from "includes/macros.html" import render_field %}
 
-        <ol>
-            {% for name in list_example %}
-            <li>{{ name }}</li>
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Sign Up</h3>
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="notification is-danger" style="text-align: left">
+                    {% for message in messages %}
+                        {{ message }}<br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="/signup">
+            {{ form.csrf_token }}
+            {% for field in form %}
+                {{ render_field(field) }}
             {% endfor %}
-        </ol>
-    {% endif %}
+            <a href="/login" class="signup">Login instead</a>
+        </form>
+    </div>
+</div>
 {% endblock %}

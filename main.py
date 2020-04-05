@@ -16,7 +16,7 @@ def list_ngrok():
 
 def main():
     from chronos.libs import tools
-    password = config.get('authentication', 'password')
+    password = config.get('security', 'webhook_password')
     key = ""
     if password:
         key = tools.get_token(password)

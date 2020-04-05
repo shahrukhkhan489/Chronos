@@ -3,27 +3,16 @@ import os
 from flask_script import Command
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db, manager
+from flask_login import UserMixin
 # from manage import db, manager
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=True)
-    password_hash = db.Column(db.String(128))
-    webhook_password_hash = db.Column(db.String(128))
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-    def set_webhook_password(self, webhook_password):
-        self.password_hash = generate_password_hash(webhook_password)
-
-    def check_webhook_password(self, webhook_password):
-        return check_password_hash(self.password_hash, webhook_password)
+    username = db.Column(db.String(128))
+    email = db.Column(db.String(128), unique=True)
+    password = db.Column(db.String(128))
+    is_anonymous = db.Column(db.Boolean, nullable=False)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -43,9 +32,9 @@ class APIKey(db.Model):
     api_key = db.Column(db.String, nullable=True)
     api_secret_hash = db.Column(db.String(128), nullable=True)
     exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'), nullable=False)
-    exchange = db.relationship('Exchange', backref=db.backref('exchange', lazy=True))
+    exchange = db.relationship('Exchange', backref=db.backref('api_key_exchange', lazy=True))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship('User', backref=db.backref('user', lazy=True))
+    user = db.relationship('User', backref=db.backref('api_key_user', lazy=True))
 
     def set_api_secret(self, api_secret):
         self.api_secret_hash = generate_password_hash(api_secret)
@@ -68,9 +57,9 @@ class ExchangeData(db.Model):
     data_type = db.Column(db.String(20))  # open_orders, open_positions, closed_orders, closed_positions, etc
     data_type_is_open = db.Column(db.Boolean)  # open vs closed, i.e. 'open' orders/positions vs 'closed' orders/positions
     exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'), nullable=False)
-    exchange = db.relationship('Exchange', backref=db.backref('exchange', lazy=True))
+    exchange = db.relationship('Exchange', backref=db.backref('exchange_data_exchange', lazy=True))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship('User', backref=db.backref('user', lazy=True))
+    user = db.relationship('User', backref=db.backref('exchange_data_user', lazy=True))
 
     def __repr__(self):
         return '<Exchange %r>' % self.exchange.name

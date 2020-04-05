@@ -10,31 +10,32 @@ I'll include as much documentation here and on the repo's wiki!  I
 expect to update this as much as possible to add features as they become available!
 Until then, if you run into any bugs let me know!
 """
-import json
-from flask import request, abort, render_template, Markup, make_response
+from flask import Blueprint, request, abort, render_template, Markup, make_response
+from flask_login import login_required, current_user
+from chronos import data_helper
+from chronos import config, log
 from chronos.libs import tools
 from chronos.libs.json2html import json2html
-from chronos import data_helper
-from . import config, log
-from flask import current_app as app
+import json
+# from flask.ext.security import login_required
+# from flask import current_app as app
+
+main = Blueprint('main', __name__)
 
 
-@app.route('/')
+@main.route('/')
 def index():
     return render_template('index.html')
 
 
-@app.route('/signup')
-def signup():
-    return render_template('signup.html')
+@main.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', username=current_user.username)
 
 
-@app.route('/login')
-def login():
-    return render_template('login.html')
-
-
-@app.route('/orders', methods=['GET'])
+@main.route('/orders', methods=['GET'])
+@login_required
 def orders():
     if request.method != 'GET':
         return make_response('Malformed request', 400)
@@ -45,30 +46,30 @@ def orders():
     return render_template('orders.html', open_orders=open_orders_table, closed_orders=closed_orders_table)
 
 
-@app.errorhandler(404)
+@main.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', exception=e), 404
 
 
-@app.route('/status', methods=['GET'])
+@main.route('/status', methods=['GET'])
 def status():
     if request.method != 'GET':
         return render_template('404.html', exception='Malformed request'), 400
     return render_template('index.html', message='online')
 
 
-@app.route('/example/list')
+@main.route('/example/list')
 def list_example():
     my_list = ['Alvin', 'Simon', 'Theodore']
     return render_template('index.html', list_example=my_list)
 
 
-@app.route('/example/user/<username>')
+@main.route('/example/user/<username>')
 def uri_example(username):
     return render_template('index.html', username=username)
 
 
-@app.route('/webhook', methods=['POST'])
+@main.route('/webhook', methods=['POST'])
 def webhook():
     password = config.get('authentication', 'password')
     if request.method == 'POST':
