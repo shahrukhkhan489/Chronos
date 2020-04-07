@@ -48,3 +48,19 @@ a.signup:hover {
   top: -12px;
 }
 */
+.navbar li {
+    float: left;
+}
+
+.navbar a {
+    cursor: pointer;
+    padding: .5rem .75rem;
+    align-items: center;
+    /*
+    display: flex;
+    flex-grow: 0;
+    flex-shrink: 0;
+    line-height: 1.5;
+    position: relative;
+    */
+}

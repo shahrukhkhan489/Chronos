@@ -1,7 +1,11 @@
 {% extends "layout.html" %}
+
 {% block title %} Profile {% endblock %}
+{% block navigation %}{{ nav.user.render() }}{% endblock %}
 {% block content %}
-<h1 class="title">
-  Welcome, {{ username }}!
-</h1>
+<div class="container has-text-centered">
+  <h1 class="title">
+    Welcome, {{ username }}!
+  </h1>
+</div>
 {% endblock %}

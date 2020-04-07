@@ -1,10 +1,12 @@
-{% extends 'base.html' %}
+{% extends 'layout.html' %}
 
 {% block title %} Orders {% endblock %}
+{% block navigation %}{{ nav.user.render() }}{% endblock %}
 {% block head %}
     {{ super() }}
 {% endblock %}
-{% block content %}
+{% block content%}
+<div class="container">
     <h1>Orders</h1>
     <h2>Open</h2>
     {% if open_orders %}
@@ -18,4 +20,5 @@
     {% else %}
         No closed orders
     {% endif %}
+</div>
 {% endblock %}

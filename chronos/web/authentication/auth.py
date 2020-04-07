@@ -1,20 +1,32 @@
 from flask import Blueprint, render_template, request, url_for, flash, Markup
+from flask_nav.elements import Navbar, View
 from flask_login import login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import redirect
 from chronos.model import User
-from chronos import db, log
+from chronos import db, log, nav
 from chronos.web.forms import LoginForm, SignupForm
 
-
+# Define blueprint and navigation menu
 auth = Blueprint('auth', __name__)
-# auth.template_folder = 'templates'
-# log.info(auth.template_folder)
+nav.register_element('auth', Navbar('auth',
+                                    View('Home', 'auth.index'),
+                                    View('Sign Up', 'auth.signup'),
+                                    View('Login', 'auth.login')))
 
 
-@auth.route('/login', methods=('GET', 'POST'))
+@auth.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html', exception=e), 404
+
+
+@auth.route('/')
+def index():
+    return render_template('index.html')
+
+
+@auth.route('/login', methods=['GET', 'POST'])
 def login():
-    log.info(auth.template_folder)
     form = LoginForm()
     if form.validate_on_submit():
         email = request.form.get('email')
@@ -29,7 +41,7 @@ def login():
     return render_template('login.html', form=form)
 
 
-@auth.route('/signup', methods=('GET', 'POST'))
+@auth.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
     if form.validate_on_submit():
@@ -54,7 +66,7 @@ def signup():
     return render_template('signup.html', form=form)
 
 
-@auth.route('/logout')
+@auth.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
-    return redirect(url_for('user.index'))
+    return redirect(url_for('auth.index'))

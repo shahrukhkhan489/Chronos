@@ -32,3 +32,15 @@
     </form>
   </div>
 {% endmacro %}
+
+{% macro render_navigation(items) %}
+  {% if items %}
+    <div class="navbar-end">
+      {% for label, route in items %}
+        <a href="{{ url_for(route) }}" class="navbar-item">
+            {{ label }}
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endmacro %}
