@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %} Open Positions & Orders {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+    <h1>Open Positions & Orders</h1>
+    <h2>Positions</h2>
+    {% if open_positions %}
+        {{ open_positions }}
+    {% else %}
+        No open positions
+    {% endif %}
+    <h3>Orders</h3>
+    {% if open_orders %}
+        {{ open_orders }}
+    {% else %}
+        No open orders
+    {% endif %}
+{% endblock %}

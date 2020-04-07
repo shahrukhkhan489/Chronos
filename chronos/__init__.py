@@ -20,7 +20,7 @@ log.setLevel(config.getint('logging', 'level'))
 
 def create_app():
     """Initialize the core application."""
-    app = Flask(__name__, instance_relative_config=False)
+    app = Flask(__name__, instance_relative_config=False, template_folder='web/templates', static_folder='web/static')
     # app = Flask(__name__, template_folder="chronos/templates", static_folder="chronos/static")
     if config.has_option('security', 'webserver_password'):
         app.config['SECRET_KEY'] = config.get('security', 'webserver_password')
@@ -36,7 +36,7 @@ def create_app():
     manager.add_command('db', MigrateCommand)
 
     login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'web/authentication/auth.login'
     login_manager.init_app(app)
 
     CSRFProtect(app)
@@ -50,9 +50,22 @@ def create_app():
     with app.app_context():
         # Include our Routes
         # blueprint for auth routes in our app
-        from chronos.controllers.auth import auth as auth_blueprint
+        from chronos.web.authentication.auth import auth as auth_blueprint
+        # app.register_blueprint(auth_blueprint)
         app.register_blueprint(auth_blueprint)
+        auth_blueprint.template_folder = 'templates'
+        auth_blueprint.static_folder = 'static'
+
         # blueprint for non-auth parts of app
-        from chronos.controllers.main import main as main_blueprint
-        app.register_blueprint(main_blueprint)
+        from chronos.web.user.user import user as user_blueprint
+        app.register_blueprint(user_blueprint)
+        user_blueprint.template_folder = 'templates'
+        user_blueprint.static_folder = 'static'
+
+        # blueprint for non-auth parts of app
+        from chronos.web.admin.admin import admin as admin_blueprint
+        app.register_blueprint(admin_blueprint, template_folder='web/admin/templates', static_folder='static')
+        admin_blueprint.template_folder = 'templates'
+        admin_blueprint.static_folder = 'static'
+
         return app

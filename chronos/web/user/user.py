@@ -20,21 +20,21 @@ import json
 # from flask.ext.security import login_required
 # from flask import current_app as app
 
-main = Blueprint('main', __name__)
+user = Blueprint('user', __name__)
 
 
-@main.route('/')
+@user.route('/')
 def index():
     return render_template('index.html')
 
 
-@main.route('/profile')
+@user.route('/profile')
 @login_required
 def profile():
     return render_template('profile.html', username=current_user.username)
 
 
-@main.route('/orders', methods=['GET'])
+@user.route('/orders', methods=['GET'])
 @login_required
 def orders():
     if request.method != 'GET':
@@ -46,30 +46,42 @@ def orders():
     return render_template('orders.html', open_orders=open_orders_table, closed_orders=closed_orders_table)
 
 
-@main.errorhandler(404)
+@user.route('/open', methods=['GET'])
+@login_required
+def open_positions():
+    if request.method != 'GET':
+        return make_response('Malformed request', 400)
+    open_orders = json.dumps(data_helper.get_open_orders('kraken'))
+    closed_orders = json.dumps(data_helper.get_closed_orders('kraken'))
+    open_orders_table = Markup(json2html.convert(json=open_orders, table_attributes='class="table table-condensed table-bordered table-hover"'))
+    closed_orders_table = Markup(json2html.convert(json=closed_orders, table_attributes='class="table table-condensed table-bordered table-hover"'))
+    return render_template('orders.html', open_orders=open_orders_table, closed_orders=closed_orders_table)
+
+
+@user.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', exception=e), 404
 
 
-@main.route('/status', methods=['GET'])
+@user.route('/status', methods=['GET'])
 def status():
     if request.method != 'GET':
         return render_template('404.html', exception='Malformed request'), 400
     return render_template('index.html', message='online')
 
 
-@main.route('/example/list')
+@user.route('/example/list')
 def list_example():
     my_list = ['Alvin', 'Simon', 'Theodore']
     return render_template('index.html', list_example=my_list)
 
 
-@main.route('/example/user/<username>')
+@user.route('/example/user/<username>')
 def uri_example(username):
     return render_template('index.html', username=username)
 
 
-@main.route('/webhook', methods=['POST'])
+@user.route('/webhook', methods=['POST'])
 def webhook():
     password = config.get('authentication', 'password')
     if request.method == 'POST':

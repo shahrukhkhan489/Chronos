@@ -6,4 +6,4 @@
 /venv
 /.idea
 /chronos/log/
-/chronos/templates/old/
+/chronos/web/templates/old/

@@ -3,15 +3,18 @@ from flask_login import login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import redirect
 from chronos.model import User
-from chronos import db
-from chronos.forms import LoginForm, SignupForm
+from chronos import db, log
+from chronos.web.forms import LoginForm, SignupForm
 
 
 auth = Blueprint('auth', __name__)
+# auth.template_folder = 'templates'
+# log.info(auth.template_folder)
 
 
 @auth.route('/login', methods=('GET', 'POST'))
 def login():
+    log.info(auth.template_folder)
     form = LoginForm()
     if form.validate_on_submit():
         email = request.form.get('email')
@@ -22,7 +25,7 @@ def login():
             flash('Please check your login details and try again.')
             return redirect(url_for('auth.login'))  # if user doesn't exist or password is wrong, reload the page
         login_user(user, remember=remember)
-        return redirect(url_for('main.profile'))
+        return redirect(url_for('user.profile'))
     return render_template('login.html', form=form)
 
 
@@ -47,11 +50,11 @@ def signup():
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        return redirect(url_for('main.profile'))
+        return redirect(url_for('user.profile'))
     return render_template('signup.html', form=form)
 
 
 @auth.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('main.index'))
+    return redirect(url_for('user.index'))
