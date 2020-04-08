@@ -8,18 +8,20 @@ from chronos import create_app, manager, log
 app = create_app()
 
 
-def seed():
+def update_records():
     """Add seed data to the database."""
     from chronos.model import Exchange, get_or_create
     print("Updating records... ", end="")
     # Exchanges
-    exchange = get_or_create(Exchange, name='Kraken')
-    exchange.ccxt_name = 'kraken'
-    exchange.class_name = None
+    exchange = get_or_create(Exchange,
+                             name='Kraken',
+                             ccxt_name='kraken',
+                             class_name=None)
     exchange.save()
-    exchange = get_or_create(Exchange, name='Kraken Futures')
-    exchange.ccxt_name = None
-    exchange.class_name = 'KrakenFutures'
+    exchange = get_or_create(Exchange,
+                             name='Kraken Futures',
+                             ccxt_name=None,
+                             class_name='KrakenFutures')
     exchange.save()
     print("OK")
 
@@ -68,7 +70,7 @@ def upgrade():
 def update():
     migrate()
     upgrade()
-    seed()
+    update_records()
     print("===============================")
     print("Database Update Complete")
 
