@@ -1,10 +1,23 @@
 import os
+import subprocess
 
-from flask_script import Command
+from sqlalchemy.sql import ClauseElement
 from werkzeug.security import generate_password_hash, check_password_hash
-from . import db, manager
+from chronos import db, manager, log
 from flask_login import UserMixin
 # from manage import db, manager
+
+
+def get_or_create(model, defaults=None, **kwargs):
+    instance = db.session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        params = dict((k, v) for k, v in kwargs.items() if not isinstance(v, ClauseElement))
+        params.update(defaults or {})
+        instance = model(**params)
+        # db.session.add(instance)
+        return instance
 
 
 class User(UserMixin, db.Model):
@@ -21,7 +34,8 @@ class User(UserMixin, db.Model):
 class Exchange(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
-    ccxt_name = db.Column(db.String, unique=True, nullable=False)
+    ccxt_name = db.Column(db.String)
+    class_name = db.Column(db.String)
 
     def __repr__(self):
         return '<Exchange %r>' % self.name
@@ -69,17 +83,25 @@ def create():
     db.create_all()
 
 
+def create2():
+    file = os.path.abspath(__file__)
+    log.info(file)
+    try:
+        print("Detecting changes and saving them to a migration script... ")
+        # result = subprocess.run(['dir'], shell=True)
+        result = subprocess.run(['python', file, 'db', 'init'], shell=True)
+        if result.returncode == 0:
+            print("OK")
+        else:
+            print("FAILED")
+        # print(result.stdout)
+    except Exception as e:
+        log.exception(e)
+
+
 def delete():
     db.drop_all()
 
 
-class Update(Command):
-
-    def run(self):
-        os.system('python model.py db migrate')
-        os.system('python model.py db upgrade')
-
-
 def manage():
-    manager.add_command('update', Update())
     manager.run()
