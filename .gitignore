@@ -6,4 +6,4 @@
 /venv
 /.idea
 /chronos/log/
-/chronos/web/templates/old/
+/chronos/migrations/
