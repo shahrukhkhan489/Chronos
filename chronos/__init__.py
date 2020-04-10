@@ -22,7 +22,18 @@ def init_db(database):
         except Exception as e:
             log.exception(e)
 
+    def update(model, defaults=None, **kwargs):
+        try:
+            params = dict((k, v) for k, v in kwargs.items() if not isinstance(v, ClauseElement))
+            params.update(defaults or {})
+            for param in params:
+                setattr(model, param, params[param])
+        except Exception as e:
+            log.exception(e)
+        return model
+
     database.Model.save = save
+    database.Model.update = update
 
 
 db = SQLAlchemy()

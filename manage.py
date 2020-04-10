@@ -10,19 +10,11 @@ app = create_app()
 
 def update_records():
     """Add seed data to the database."""
-    from chronos.model import Exchange, get_or_create
+    from chronos.model import get_or_create, Exchange
     print("Updating records... ", end="")
     # Exchanges
-    exchange = get_or_create(Exchange,
-                             name='Kraken',
-                             ccxt_name='kraken',
-                             class_name=None)
-    exchange.save()
-    exchange = get_or_create(Exchange,
-                             name='Kraken Futures',
-                             ccxt_name=None,
-                             class_name='KrakenFutures')
-    exchange.save()
+    get_or_create(Exchange, name='Kraken').update(ccxt_name='kraken', class_name=None).save()
+    get_or_create(Exchange, name='Kraken Futures').update(ccxt_name=None, class_name='KrakenFutures').save()
     print("OK")
 
 

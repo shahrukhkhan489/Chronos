@@ -1,11 +1,9 @@
 import os
 import subprocess
-
 from sqlalchemy.sql import ClauseElement
 from werkzeug.security import generate_password_hash, check_password_hash
 from chronos import db, manager, log
 from flask_login import UserMixin
-# from manage import db, manager
 
 
 def get_or_create(model, defaults=None, **kwargs):
@@ -16,7 +14,6 @@ def get_or_create(model, defaults=None, **kwargs):
         params = dict((k, v) for k, v in kwargs.items() if not isinstance(v, ClauseElement))
         params.update(defaults or {})
         instance = model(**params)
-        # db.session.add(instance)
         return instance
 
 
@@ -28,7 +25,7 @@ class User(UserMixin, db.Model):
     is_anonymous = db.Column(db.Boolean, nullable=False)
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<User {}>'.format(self.username)
 
 
 class Exchange(db.Model):
@@ -38,7 +35,7 @@ class Exchange(db.Model):
     class_name = db.Column(db.String)
 
     def __repr__(self):
-        return '<Exchange %r>' % self.name
+        return '<Exchange {}>'.format(self.name)
 
 
 class APIKey(db.Model):
@@ -57,7 +54,7 @@ class APIKey(db.Model):
         return check_password_hash(self.password_hash, api_secret)
 
     def __repr__(self):
-        return '<APIKey %r>' % self.api_key
+        return '<APIKey {}.{}>'.format(self.exchange.name, self.api_key)
 
 
 class ExchangeData(db.Model):
