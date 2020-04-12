@@ -1,9 +1,8 @@
-import os
-import subprocess
 from sqlalchemy.sql import ClauseElement
-from werkzeug.security import generate_password_hash, check_password_hash
-from chronos import db, manager, log
+from chronos import db, manager
+# from chronos import log
 from flask_login import UserMixin
+from .libs.crud import CrudBase
 
 
 def get_or_create(model, defaults=None, **kwargs):
@@ -17,47 +16,43 @@ def get_or_create(model, defaults=None, **kwargs):
         return instance
 
 
-class User(UserMixin, db.Model):
+class User(UserMixin, CrudBase, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(128))
     email = db.Column(db.String(128), unique=True)
     password = db.Column(db.String(128))
     is_anonymous = db.Column(db.Boolean, nullable=False)
+    is_admin = db.Column(db.Boolean, nullable=False)
 
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return self.username
 
 
-class Exchange(db.Model):
+class Exchange(CrudBase, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
     ccxt_name = db.Column(db.String)
     class_name = db.Column(db.String)
+    api_keys = db.relationship('ApiKey', backref='exchange_api_keys')
 
     def __repr__(self):
-        return '<Exchange {}>'.format(self.name)
+        return self.name
 
 
-class APIKey(db.Model):
+class ApiKey(CrudBase, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    api_key = db.Column(db.String, nullable=True)
-    api_secret_hash = db.Column(db.String(128), nullable=True)
+    public_key = db.Column(db.String, nullable=True)
+    private_key = db.Column(db.String(128), nullable=True)
     exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'), nullable=False)
     exchange = db.relationship('Exchange', backref=db.backref('api_key_exchange', lazy=True))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('api_key_user', lazy=True))
 
-    def set_api_secret(self, api_secret):
-        self.api_secret_hash = generate_password_hash(api_secret)
-
-    def check_api_secret(self, api_secret):
-        return check_password_hash(self.password_hash, api_secret)
-
     def __repr__(self):
-        return '<APIKey {}.{}>'.format(self.exchange.name, self.api_key)
+        return '{}.{}'.format(self.exchange.name, self.public_key)
 
 
-class ExchangeData(db.Model):
+class ExchangeData(CrudBase, db.Model):
     """
     Aggregates all data that comes from exchanges such as orders and positions
     """
@@ -73,27 +68,14 @@ class ExchangeData(db.Model):
     user = db.relationship('User', backref=db.backref('exchange_data_user', lazy=True))
 
     def __repr__(self):
-        return '<Exchange %r>' % self.exchange.name
+        return '<Exchange {}r>'.format(self.exchange.name)
+
+
+# class Trade(CrudBase, db.Model):
 
 
 def create():
     db.create_all()
-
-
-def create2():
-    file = os.path.abspath(__file__)
-    log.info(file)
-    try:
-        print("Detecting changes and saving them to a migration script... ")
-        # result = subprocess.run(['dir'], shell=True)
-        result = subprocess.run(['python', file, 'db', 'init'], shell=True)
-        if result.returncode == 0:
-            print("OK")
-        else:
-            print("FAILED")
-        # print(result.stdout)
-    except Exception as e:
-        log.exception(e)
 
 
 def delete():

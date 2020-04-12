@@ -64,3 +64,21 @@ a.signup:hover {
     position: relative;
     */
 }
+
+table.js-sort-table, table.js-sort-table th, table.js-sort-table tr {
+    background-color: white;
+    border-color: grey;
+}
+
+table.js-sort-table th {
+    padding: 5px 10px;
+    background-color: grey;
+    /*color: orange;*/
+}
+
+table.js-sort-table td {
+    /*padding: 5px 15px 5px 10px;*/
+    padding: 5px 10px;
+    border-color: grey;
+    color: black;
+}

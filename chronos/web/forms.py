@@ -1,9 +1,14 @@
 from flask_wtf import FlaskForm
+from sqlalchemy import text
 from wtforms import StringField, SubmitField, PasswordField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
+from flask_login import current_user
+from wtforms_sqlalchemy.fields import QuerySelectField
+
 # from flask_wtf import RecaptchaField
 # from wtforms import SelectField, DateField
 # from wtforms.validators import URL
+# from chronos import log
 
 
 class ContactForm(FlaskForm):
@@ -58,3 +63,60 @@ class LoginForm(FlaskForm):
                              render_kw={'class': css_class, 'placeholder': 'Password'})
     remember = BooleanField('Remember me', false_values=False, render_kw={'value': 'n'})
     submit = SubmitField('Send', render_kw={'class': 'button is-block is-info is-large is-fullwidth'})
+
+
+class UserForm(FlaskForm):
+    css_class = "input"
+    username = StringField('Username',
+                           [DataRequired()],
+                           render_kw={'class': css_class, 'placeholder': 'Username', 'autofocus': ''})
+    email = StringField('Email',
+                        [Email(message='Not a valid email address.'), DataRequired()],
+                        render_kw={'class': css_class, 'placeholder': 'Email'})
+    password = PasswordField('Password',
+                             [DataRequired(message="Please enter a password."),
+                              EqualTo('confirm_password', message='Passwords must match')],
+                             render_kw={'class': css_class, 'placeholder': 'Password'})
+    confirm_password = PasswordField('Repeat Password',
+                                     render_kw={'class': css_class, 'placeholder': 'Repeat Password'})
+    submit = SubmitField('Save', render_kw={'class': 'button is-block is-info is-large is-fullwidth'})
+
+
+class ExchangeForm(FlaskForm):
+    css_class = "input"
+    name = StringField('Name',
+                       [DataRequired()],
+                       render_kw={'class': css_class, 'placeholder': 'Name', 'autofocus': ''})
+    ccxt_name = StringField('CCXT name', render_kw={'class': css_class, 'placeholder': 'CCXT name'})
+    class_name = StringField('Class name', render_kw={'class': css_class, 'placeholder': 'Class name'})
+    submit = SubmitField('Save', render_kw={'class': 'button is-block is-info is-large is-fullwidth'})
+
+
+def make_query_factory(model, _order_by=""):
+    return lambda: model.query.order_by(text(_order_by)).all()
+
+
+def get_primary_key(model):
+    return model.id
+
+
+class ApiKeyForm(FlaskForm):
+    from ..model import Exchange
+    title = 'Add API key pair'
+    css_class = "input"
+    user_id = None
+    if current_user:
+        user_id = current_user.id
+    exchange_id = QuerySelectField('exchange_id',
+                                   [DataRequired()],
+                                   query_factory=make_query_factory(Exchange),
+                                   get_pk=get_primary_key,
+                                   allow_blank=False,
+                                   render_kw={'class': css_class, 'placeholder': 'Exchange', 'autofocus': ''})
+    public_key = StringField('Public Key',
+                             [DataRequired()],
+                             render_kw={'class': css_class, 'placeholder': 'Public Key'})
+    private_key = StringField('Private Key',
+                              [DataRequired()],
+                              render_kw={'class': css_class, 'placeholder': 'Private Key'})
+    submit = SubmitField('Save', render_kw={'class': 'button is-block is-info is-large is-fullwidth'})

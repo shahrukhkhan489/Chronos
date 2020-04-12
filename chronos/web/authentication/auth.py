@@ -2,9 +2,11 @@ from flask import Blueprint, render_template, request, url_for, flash, Markup
 from flask_nav.elements import Navbar, View
 from flask_login import login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.urls import url_parse
 from werkzeug.utils import redirect
 from chronos.model import User
-from chronos import db, log, nav
+from chronos import db, nav
+# from chronos import log
 from chronos.web.forms import LoginForm, SignupForm
 
 # Define blueprint and navigation menu
@@ -37,7 +39,10 @@ def login():
             flash('Please check your login details and try again.')
             return redirect(url_for('auth.login'))  # if user doesn't exist or password is wrong, reload the page
         login_user(user, remember=remember)
-        return redirect(url_for('user.profile'))
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('user.profile')
+        return redirect(next_page)
     return render_template('login.html', form=form)
 
 
@@ -59,8 +64,7 @@ def signup():
                         password=generate_password_hash(password, method='sha256'),
                         is_anonymous=False)
         # add the new user to the database
-        db.session.add(new_user)
-        db.session.commit()
+        new_user.save(db.session)
         login_user(new_user)
         return redirect(url_for('user.profile'))
     return render_template('signup.html', form=form)

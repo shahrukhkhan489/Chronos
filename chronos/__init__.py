@@ -98,10 +98,13 @@ def create_app():
         user_blueprint.template_folder = 'templates'
         user_blueprint.static_folder = 'static'
 
-        # blueprint for non-auth parts of app
+        # blueprint for admin parts of app
         from chronos.web.admin.admin import admin as admin_blueprint
         app.register_blueprint(admin_blueprint, template_folder='web/admin/templates', static_folder='static')
         admin_blueprint.template_folder = 'templates'
         admin_blueprint.static_folder = 'static'
+
+        from chronos.web import crud
+        crud.register(app, db.session)
 
         return app

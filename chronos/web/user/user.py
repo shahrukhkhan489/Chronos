@@ -1,7 +1,11 @@
-from flask import Blueprint, request, abort, render_template, Markup
+from flask import Blueprint, request, abort, render_template, Markup, flash, url_for
 from flask_nav.elements import Navbar, View
 from flask_login import login_required, current_user
-from chronos import data_helper
+from werkzeug.security import generate_password_hash
+from werkzeug.utils import redirect
+from chronos.model import ApiKey
+from chronos.web.forms import ApiKeyForm
+from chronos import data_helper, db
 from chronos import config, log, nav
 from chronos.libs import tools
 from chronos.libs.json2html import json2html
@@ -20,6 +24,33 @@ nav.register_element('user', Navbar('user',
 @login_required
 def profile():
     return render_template('profile.html', username=current_user.username)
+
+
+@user.route('/api-key/add', methods=['GET', 'POST'])
+@login_required
+def create_api_key():
+    form = ApiKeyForm()
+    if form.validate_on_submit():
+        user_id = current_user.id
+        exchange_id = request.form.get('exchange_id')
+        public_key = request.form.get('public_key')
+        private_key = request.form.get('private_key')
+
+        api_key = ApiKey.query.filter_by(user_id=user_id, exchange_id=exchange_id, public_key=public_key).first()
+
+        if api_key:  # leave a message if the public key already exists
+            flash(Markup('Public key already exists.'))
+            return redirect(url_for('user.create_api_key'))
+
+        # noinspection PyArgumentList
+        new_api_key = ApiKey(user_id=user_id,
+                             exchange_id=exchange_id,
+                             public_key=public_key,
+                             private_key=generate_password_hash(private_key, method='sha256'))
+        # add the new user to the database
+        new_api_key.save(db.session)
+        return redirect('/api-key/')
+    return render_template('add.html', form=form, action=url_for('user.create_api_key'), title="Add API key pair")
 
 
 @user.route('/orders')

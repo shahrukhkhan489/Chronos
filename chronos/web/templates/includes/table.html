@@ -7,10 +7,10 @@
         </tr>
     </thead>
     <tbody>
-        {% for record in records %}
+        {% for item in items %}
         <tr>
             {% for col in colnames %}
-            <td>{{ record[col] }}</td>
+            <td>{{ item[col] }}</td>
             {% endfor %}
         </tr>
         {% endfor %}
