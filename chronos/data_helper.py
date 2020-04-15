@@ -63,6 +63,7 @@ def get_open_orders(exchange, symbol=None, since=None, limit=None):
     """
     result = False
     exchange = get_exchange(exchange)
+    log.info(exchange)
     if exchange:
         try:
             symbol = sanitize_symbol(symbol, exchange)

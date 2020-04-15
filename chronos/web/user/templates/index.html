@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from "includes/macros.html" import render_table %}
+{% from "includes/macros.html" import render_menu %}
+
+{% block title %} User Index {% endblock %}
+{% block content %}
+<div class="container has-text-centered">
+    {{ render_table(items, columns, is_editable, is_deletable) }}
+</div>
+{% endblock %}

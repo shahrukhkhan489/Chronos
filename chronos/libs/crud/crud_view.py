@@ -35,7 +35,7 @@ Modified by timelyart, timelyart@protonmail.com, https://github.com/timelyart
 from flask_classful import FlaskView, route
 from flask import render_template, request, redirect, url_for, abort
 from os.path import join as path_join
-
+from ..permission import check_permission
 from flask_login import current_user
 from sqlalchemy.sql import text
 
@@ -85,6 +85,11 @@ class CrudView(FlaskView):
     addto_index_field = None
     filters = None
     order_by = None
+    is_creatable = False  # False, True or ADMIN
+    is_showable = False  # False, True or ADMIN
+    is_editable = False  # False, True or ADMIN
+    is_deletable = False  # False, True or ADMIN
+    navbar = None
     # model = None
 
     methods = ['index', 'add', 'edit', 'show', 'delete']
@@ -93,7 +98,10 @@ class CrudView(FlaskView):
     @classmethod
     def register(cls, app, db_session, *args, **kwargs):
         cls.db_session = db_session
-        # cls.model = model
+        for key, value in kwargs.items():
+            if hasattr(cls, key):
+                cls.key = value
+                log.info('{}={}'.format(key, cls.key))
         super(CrudView, cls).register(app, *args, **kwargs)
 
     def _url_for_index(self):
@@ -108,11 +116,15 @@ class CrudView(FlaskView):
 
     def index(self):
         if 'index' not in self.methods:
-            abort(404)
+            return render_template('404.html')
+            # abort(404)
         items = self._index_items()
         if self.presenter:
             items = self.presenter(items)
-        return render_template(self._template_path(self.index_template), columns=self.cols, items=items,
+        log.info('is_editable = {}'.format(self.is_editable))
+        log.info('is_deletable = {}'.format(self.is_deletable))
+        return render_template(self._template_path(self.index_template),
+                               columns=self.cols, items=items, is_editable=check_permission(self.is_editable), is_deletable=check_permission(self.is_deletable),
                                **self._index_extras(items))
 
     def _index_items(self):
@@ -143,7 +155,9 @@ class CrudView(FlaskView):
     @route('/add/', methods=['POST', 'GET'])
     def add(self):
         if 'add' not in self.methods:
-            abort(404)
+            return render_template('404.html')
+        if not check_permission(self.is_creatable):
+            return render_template('403.html')
         form = self.form(request.form)
         if form.validate_on_submit():
             item = self.model()
@@ -154,7 +168,9 @@ class CrudView(FlaskView):
     @route('/addto/<int:id_>', methods=['POST', 'GET'])
     def addto(self, id_):
         if 'addto' not in self.methods:
-            abort(404)
+            return render_template('404.html')
+        if not check_permission(self.is_creatable):
+            return render_template('403.html')
         form = self.form(request.form)
         if form.validate_on_submit():
             item = self.model()
@@ -173,7 +189,9 @@ class CrudView(FlaskView):
     @route('/show/<int:id_>')
     def show(self, id_):
         if 'show' not in self.methods:
-            abort(404)
+            return render_template('404.html')
+        if not check_permission(self.is_showable):
+            return render_template('403.html')
         item = self.model.query.get_or_404(id_)
         return render_template(self._template_path(self.show_template), item=item, **self._show_extras(item))
 
@@ -184,7 +202,9 @@ class CrudView(FlaskView):
     @route('/edit/<int:id_>', methods=['POST', 'GET'])
     def edit(self, id_):
         if 'edit' not in self.methods:
-            abort(404)
+            return render_template('404.html')
+        if not check_permission(self.is_editable):
+            return render_template('403.html')
         item = self.model.query.get_or_404(id_)
         form = self.form(request.form, obj=item)
         if form.validate_on_submit():
@@ -199,7 +219,10 @@ class CrudView(FlaskView):
     @route('/delete/<int:id_>', methods=['POST'])
     def delete(self, id_):
         if 'delete' not in self.methods:
-            abort(404)
+            return render_template('404.html')
+        if not check_permission(self.is_deletable):
+            return render_template('403.html')
+        item = self.model.query.get_or_404(id_)
         item = self.model.query.get_or_404(id_)
         item.delete(session=self.db_session)
         return redirect(self._success_redirect_url(item, 'delete'))

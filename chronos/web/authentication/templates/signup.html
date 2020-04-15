@@ -1,29 +1,25 @@
-{% extends "layout.html" %}
-{% from "includes/macros.html" import render_field %}
+{% extends "base.html" %}
+{% from "bootstrap4/forms.html" import render_field %}
+{% from "includes/macros.html" import render_messages %}
 
 {% block title %} Sign Up {% endblock %}
-{% block navigation %}{{ nav.auth.render() }}{% endblock %}
 {% block content %}
-<div class="container has-text-centered">
-    <div class="column is-4 is-offset-4">
-        <h3 class="title">Sign Up</h3>
-        <div class="box">
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <div class="notification is-danger" style="text-align: left">
-                        {% for message in messages %}
-                            {{ message }}<br>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
-            <form method="POST" action="/signup">
-                {{ form.csrf_token }}
-                {% for field in form %}
-                    {{ render_field(field) }}
-                {% endfor %}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-6">
+            <h3 class="title">Sign Up</h3>
+            <div class="box">
+                {{ render_messages() }}
+                <form method="POST" action="/signup" class="form was-validated">
+                    {{ form.csrf_token }}
+                    {% for field in form %}
+                        {% if not field.name == 'csrf_token' %}
+                            {{ render_field(field) }}
+                        {% endif %}
+                    {% endfor %}
+                </form>
                 <a href="/login" class="signup">Login instead</a>
-            </form>
+            </div>
         </div>
     </div>
 </div>

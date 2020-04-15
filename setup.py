@@ -15,5 +15,5 @@ setup(
     description='A bot that can execute trades based on tradingview webhook alerts! Forked from https://github.com/Robswc/tradingview-webhooks-bot',
     long_description=long_description,
     install_requires=['flask', 'PyYAML', 'psutil', 'ccxt', 'jinja2', 'ordereddict', 'simplejson', 'werkzeug', 'wtforms',
-                      'sqlalchemy'],
+                      'sqlalchemy', 'visitor', 'dominate'],
 )

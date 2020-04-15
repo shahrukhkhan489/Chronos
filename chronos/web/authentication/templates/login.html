@@ -1,13 +1,16 @@
-{% extends "layout.html" %}
-{% from "includes/macros.html" import render_form %}
+{% extends "base.html" %}
+{% from "bootstrap4/forms.html" import render_form %}
+{% from "includes/macros.html" import render_messages %}
 
 {% block title %} Login {% endblock %}
-{% block navigation %}{{ nav.auth.render() }}{% endblock %}
 {% block content %}
 <div class="container has-text-centered">
-    <div class="column is-4 is-offset-4">
-        <h3 class="title">Login</h3>
-        {{ render_form(form) }}
+    <div class="col-sm-6">
+        <div class="box">
+            <h3 class="title">Login</h3>
+            {{ render_messages() }}
+            {{ render_form(form, extra_classes=form.extra_classes) }}
+        </div>
     </div>
 </div>
 {% endblock %}

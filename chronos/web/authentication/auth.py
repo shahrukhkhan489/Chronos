@@ -1,20 +1,14 @@
-from flask import Blueprint, render_template, request, url_for, flash, Markup
-from flask_nav.elements import Navbar, View
-from flask_login import login_user, logout_user
+from flask import Blueprint, request, url_for, flash, Markup, render_template
+from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
 from werkzeug.utils import redirect
 from chronos.model import User
-from chronos import db, nav
-# from chronos import log
+from chronos import db, log
 from chronos.web.forms import LoginForm, SignupForm
 
 # Define blueprint and navigation menu
 auth = Blueprint('auth', __name__)
-nav.register_element('auth', Navbar('auth',
-                                    View('Home', 'auth.index'),
-                                    View('Sign Up', 'auth.signup'),
-                                    View('Login', 'auth.login')))
 
 
 @auth.errorhandler(404)
@@ -36,12 +30,15 @@ def login():
         remember = True if request.form.get('remember') else False
         user = User.query.filter_by(email=email).first()
         if not user or not check_password_hash(user.password, password):
-            flash('Please check your login details and try again.')
+            flash('Please check your login details and try again.', 'danger')
             return redirect(url_for('auth.login'))  # if user doesn't exist or password is wrong, reload the page
         login_user(user, remember=remember)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('user.profile')
+            if user.is_admin:
+                next_page = url_for('admin.dashboard')
+            else:
+                next_page = url_for('user.index')
         return redirect(next_page)
     return render_template('login.html', form=form)
 
@@ -56,7 +53,7 @@ def signup():
 
         user = User.query.filter_by(email=email).first()  # check if email address exists in database
         if user:  # leave a message if the email address exists
-            flash(Markup('Email address already exists. Go to the <a href="login">login page</a>.'))
+            flash(Markup('Email address already exists. Go to the <a href="login">login page</a>.'), 'danger')
             return redirect(url_for('auth.signup'))
         # noinspection PyArgumentList
         new_user = User(email=email,
@@ -73,4 +70,4 @@ def signup():
 @auth.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
-    return redirect(url_for('auth.index'))
+    return redirect(url_for('auth.login'))

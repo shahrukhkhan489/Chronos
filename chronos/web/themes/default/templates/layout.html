@@ -10,6 +10,8 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='sort-table.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
+    {% block script %}{% endblock %}
+    {% from "includes/macros.html" import render_menu %}
     {% include 'includes/favicon.html' %}
 </head>
 <body>
@@ -19,6 +21,7 @@
                 <div class="container">
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-end">
+                            {{ render_menu(current_menu) }}
                             {% block navigation %}{% endblock %}
                         </div>
                     </div>

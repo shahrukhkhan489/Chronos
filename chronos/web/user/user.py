@@ -1,23 +1,23 @@
 from flask import Blueprint, request, abort, render_template, Markup, flash, url_for
-from flask_nav.elements import Navbar, View
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import redirect
 from chronos.model import ApiKey
 from chronos.web.forms import ApiKeyForm
 from chronos import data_helper, db
-from chronos import config, log, nav
+from chronos import config, log
 from chronos.libs import tools
 from chronos.libs.json2html import json2html
 import json
 
 # Define blueprint and navigation menu
 user = Blueprint('user', __name__)
-nav.register_element('user', Navbar('user',
-                                    View('Home', 'auth.index'),
-                                    View('Orders', 'user.orders'),
-                                    View('Profile', 'user.profile'),
-                                    View('Logout', 'auth.logout')))
+
+
+@user.route('/')
+@login_required
+def index():
+    return render_template('index.html')
 
 
 @user.route('/profile')
