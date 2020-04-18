@@ -295,3 +295,35 @@ def get_operating_system():
 def get_token(password):
     token = hashlib.sha224(password.encode('utf-8'))
     return token.hexdigest()
+
+
+def find_files_and_folders(filename, a_dir=os.curdir):
+    """
+    Find files and/or folders on the basis of (a part of) a filename
+    :param filename: the filename
+    :param a_dir: the directory to search, os.curdir by default
+    :return: found dirs (array), and found files (array)
+    """
+    files = []
+    dirs = []
+    for x in os.walk(a_dir):
+
+        root = x[0]
+        for name in x[1]:
+            if name.find(filename) >= 0:
+                result = os.path.join(str(root), str(name))
+                dirs.append(result)
+        for name in x[2]:
+            if name.find(filename) >= 0:
+                result = os.path.join(str(root), str(name))
+                files.append(result)
+    return dirs, files
+
+
+def get_immediate_subdirectories(a_dir=os.curdir):
+    """
+    Get the immediate subdirectories of a given dir
+    :param a_dir: the directory to search, os.curdir by default
+    :return: the found subdirectories (array)
+    """
+    return [f.name for f in os.scandir(a_dir) if f.is_dir()]

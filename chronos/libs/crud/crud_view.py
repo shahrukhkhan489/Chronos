@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Modified by timelyart, timelyart@protonmail.com, https://github.com/timelyart
 """
 from flask_classful import FlaskView, route
-from flask import render_template, request, redirect, url_for, abort
+from flask import render_template, request, redirect, url_for
 from os.path import join as path_join
 from ..permission import check_permission
 from flask_login import current_user
@@ -83,12 +83,15 @@ class CrudView(FlaskView):
 
     db_session = None
     addto_index_field = None
+    form = None
+    model = None
     filters = None
     order_by = None
     is_creatable = False  # False, True or ADMIN
     is_showable = False  # False, True or ADMIN
     is_editable = False  # False, True or ADMIN
     is_deletable = False  # False, True or ADMIN
+    cols = []
     navbar = None
     # model = None
 
@@ -114,6 +117,7 @@ class CrudView(FlaskView):
     def _template_path(cls, template_name):
         return path_join(cls.template_directory, template_name)
 
+    # noinspection PyArgumentList
     def index(self):
         if 'index' not in self.methods:
             return render_template('404.html')
@@ -121,8 +125,8 @@ class CrudView(FlaskView):
         items = self._index_items()
         if self.presenter:
             items = self.presenter(items)
-        log.info('is_editable = {}'.format(self.is_editable))
-        log.info('is_deletable = {}'.format(self.is_deletable))
+        # log.info('is_editable = {}'.format(self.is_editable))
+        # log.info('is_deletable = {}'.format(self.is_deletable))
         return render_template(self._template_path(self.index_template),
                                columns=self.cols, items=items, is_editable=check_permission(self.is_editable), is_deletable=check_permission(self.is_deletable),
                                **self._index_extras(items))

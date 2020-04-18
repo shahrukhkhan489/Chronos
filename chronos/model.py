@@ -1,4 +1,4 @@
-from sqlalchemy.sql import ClauseElement
+from sqlalchemy.sql import ClauseElement, text
 from chronos import db, manager
 # from chronos import log
 from flask_login import UserMixin
@@ -18,11 +18,13 @@ def get_or_create(model, defaults=None, **kwargs):
 
 class User(UserMixin, CrudBase, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(128))
-    email = db.Column(db.String(128), unique=True)
-    password = db.Column(db.String(80))
-    is_anonymous = db.Column(db.Boolean, nullable=False)
-    is_admin = db.Column(db.Boolean, nullable=False)
+    username = db.Column(db.String(128), nullable=False)
+    email = db.Column(db.String(128), nullable=False, unique=True)
+    password = db.Column(db.String(80), nullable=False)
+    is_anonymous = db.Column(db.Boolean, nullable=False, server_default=text("False"))
+    is_admin = db.Column(db.Boolean, nullable=False, server_default=text("False"))
+    email_verified = db.Column(db.Boolean, nullable=False, server_default=text("False"))
+    theme = db.Column(db.String())
 
     def __repr__(self):
         return self.username

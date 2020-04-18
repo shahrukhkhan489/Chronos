@@ -1,21 +1,21 @@
 import os
+import urllib.parse
 
-from flask import Flask, render_template
+from flask import Flask, request
 from flask_bootstrap import Bootstrap
+from flask_login import LoginManager, current_user, user_logged_out, user_logged_in
 from flask_migrate import Migrate, MigrateCommand
 from flask_nav import Nav, register_renderer
 from flask_nav.elements import Navbar, View
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, logout_user, current_user, user_logged_out, user_logged_in
+from flask_themer import Themer
 from flask_wtf import CSRFProtect
 # from flask_menu import Menu, register_menu
 from sqlalchemy.sql import ClauseElement
-from werkzeug.exceptions import abort
-
 from chronos.libs import tools
 from chronos.web.http_error import page_not_found
-from chronos.web.nav import Bootstrap3Renderer, Bootstrap4Renderer
+from chronos.web.nav import Bootstrap3Renderer, Bootstrap4Renderer, NeonLightsRenderer
 
 
 def init_db(database):
@@ -75,6 +75,7 @@ login_manager = LoginManager()
 migrate = Migrate()
 manager = Manager()
 nav = Nav()
+themer = Themer()
 config = tools.get_config()
 log = tools.create_log()
 log.setLevel(20)
@@ -83,7 +84,7 @@ log.setLevel(config.getint('logging', 'level'))
 
 def create_app():
     """Initialize the core application."""
-    app = Flask(__name__, instance_relative_config=False, template_folder='web/themes/default/templates', static_folder='web/themes/default/static')
+    app = Flask(__name__, instance_relative_config=False, template_folder='web/templates', static_folder='web/static', static_url_path="/static")
     if config.has_option('security', 'webserver_password'):
         app.config['SECRET_KEY'] = config.get('security', 'webserver_password')
     if config.has_option('database', 'connection_string'):
@@ -109,6 +110,8 @@ def create_app():
     nav.init_app(app)
     nav.register_element('top', top_nav)
     register_renderer(app, 'bootstrap', Bootstrap4Renderer)
+    register_renderer(app, 'neon-lights', NeonLightsRenderer)
+    themer.init_app(app)
     CSRFProtect(app)
     Bootstrap(app)
 
@@ -129,23 +132,46 @@ def create_app():
                 navigation = {'.dashboard': 'Dashboard', '.profile': 'Profile', '.logout': 'Logout'}
         return navigation
 
+    @themer.current_theme_loader
+    def get_current_theme():
+        if hasattr(current_user, 'theme') and current_user.theme:
+            return current_user.theme
+        elif request and request.cookies and request.cookies.get('chronos-preference-theme'):
+            return request.cookies.get('chronos-preference-theme')
+        else:
+            return 'moon-base-alpha'
+
+    @app.context_processor
+    def context_processor():
+
+        def url_for_static(filename):
+            # root = os.path.join(os.curdir, 'chronos\web\static')
+            return urllib.parse.urljoin('/chronos/web/static/', filename)
+            # return os.path.abspath(os.path.join(os.path.join(root, 'chronos\web\static'), filename))
+
+        return dict(url_for_static=url_for_static)
+
+    app.add_url_rule('/static/favicon/<path:filename>/', endpoint='favicon',
+                     view_func=app.send_static_file)
+    app.add_url_rule('/static/js/<path:filename>/', endpoint='js',
+                     view_func=app.send_static_file)
     with app.app_context():
         # Include our Routes
-        # blueprint for auth routes in our app
+        # blueprint for non-auth routes in our app
         from chronos.web.authentication.auth import auth as auth_blueprint
-        app.register_blueprint(auth_blueprint)
+        app.register_blueprint(auth_blueprint, template_folder='templates', static_folder='static')
         auth_blueprint.template_folder = 'templates'
         auth_blueprint.static_folder = 'static'
 
-        # blueprint for non-auth parts of app
+        # blueprint for regular user parts of app
         from chronos.web.user.user import user as user_blueprint
-        app.register_blueprint(user_blueprint)
+        app.register_blueprint(user_blueprint, template_folder='templates', static_folder='static')
         user_blueprint.template_folder = 'templates'
         user_blueprint.static_folder = 'static'
 
-        # blueprint for admin parts of app
+        # blueprint for admin user parts of app
         from chronos.web.admin.admin import admin as admin_blueprint
-        app.register_blueprint(admin_blueprint, template_folder='web/admin/templates', static_folder='static')
+        app.register_blueprint(admin_blueprint, template_folder='templates', static_folder='static')
         admin_blueprint.template_folder = 'templates'
         admin_blueprint.static_folder = 'static'
 

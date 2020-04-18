@@ -1,6 +1,7 @@
 import ast
 import ccxt
 from . import config, log
+from .libs.tools import find_files_and_folders, get_immediate_subdirectories
 
 
 def send_order(data):
@@ -264,3 +265,15 @@ def sanitize_symbol(symbol, exchange):
                 return ccxt_symbol
 
     return symbol
+
+
+def get_themes():
+    # find 'themes' directory recursively
+    result = []
+    dirs, files = find_files_and_folders('themes')
+    for path in dirs:
+        if path.endswith('\\themes'):
+            result = get_immediate_subdirectories(path)
+            break
+
+    return result

@@ -1,11 +1,11 @@
-from flask import Blueprint, request, url_for, flash, Markup, render_template
-from flask_login import login_user, logout_user, current_user
+from flask import Blueprint, request, url_for, flash, Markup, render_template, make_response
+from flask_login import login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.urls import url_parse
 from werkzeug.utils import redirect
 from chronos.model import User
 from chronos import db, log
 from chronos.web.forms import LoginForm, SignupForm
+from chronos.libs.flask_helpers import redirect_url
 
 # Define blueprint and navigation menu
 auth = Blueprint('auth', __name__)
@@ -21,6 +21,11 @@ def index():
     return render_template('index.html')
 
 
+@auth.route('/theme-test')
+def theme_test():
+    return render_template('theme_test.html')
+
+
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -33,13 +38,24 @@ def login():
             flash('Please check your login details and try again.', 'danger')
             return redirect(url_for('auth.login'))  # if user doesn't exist or password is wrong, reload the page
         login_user(user, remember=remember)
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            if user.is_admin:
+
+        # redirect to the previous page (if any), or to the user role's default
+        if user.is_admin:
+            next_page = redirect_url(url_for('admin.dashboard'))
+            # exclude auth.login as referrer
+            if next_page.endswith(url_for('auth.login')):
                 next_page = url_for('admin.dashboard')
-            else:
+        else:
+            next_page = redirect_url(url_for('user.index'))
+            # exclude auth.login as referrer
+            if next_page.endswith(url_for('auth.login')):
                 next_page = url_for('user.index')
-        return redirect(next_page)
+        resp = make_response(redirect(next_page))
+
+        # update user preferences cookies
+        if user.theme:
+            resp.set_cookie('chronos-preference-theme', user.theme)
+        return resp
     return render_template('login.html', form=form)
 
 

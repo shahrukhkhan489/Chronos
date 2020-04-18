@@ -1,13 +1,13 @@
-from flask import Blueprint, request, abort, render_template, Markup, flash, url_for
+from flask import Blueprint, request, abort, render_template, Markup, flash, url_for, make_response
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import redirect
-from chronos.model import ApiKey
-from chronos.web.forms import ApiKeyForm
-from chronos import data_helper, db
-from chronos import config, log
-from chronos.libs import tools
+from chronos.libs.flask_helpers import redirect_url
 from chronos.libs.json2html import json2html
+from chronos.libs import tools
+from chronos.model import ApiKey
+from chronos import data_helper, db, config, log
+from chronos.web.forms import ApiKeyForm, ProfileForm
 import json
 
 # Define blueprint and navigation menu
@@ -20,10 +20,27 @@ def index():
     return render_template('index.html')
 
 
-@user.route('/profile')
+@user.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    return render_template('profile.html', username=current_user.username)
+    form = ProfileForm()
+    form.username.data = current_user.username
+    form.email.data = current_user.email
+    form.theme.data = current_user.theme or 'moon-base-alpha'
+
+    if form.validate_on_submit():
+        current_user.email = request.form.get('email')
+        current_user.username = request.form.get('username')
+        if request.form.get('password'):
+            current_user.password = generate_password_hash(request.form.get('password'), method='sha256')
+        current_user.theme = request.form.get('theme')
+        # save theme to a cookie
+        resp = make_response(redirect(redirect_url()))
+        resp.set_cookie('chronos-preference-theme', current_user.theme)
+        current_user.save(db.session)
+        return resp
+
+    return render_template('profile.html', form=form)
 
 
 @user.route('/api-key/add', methods=['GET', 'POST'])

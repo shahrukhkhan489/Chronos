@@ -1,14 +1,10 @@
 from flask_wtf import FlaskForm
 from sqlalchemy import text
-from wtforms import StringField, SubmitField, PasswordField, BooleanField
+from wtforms import StringField, SubmitField, PasswordField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from flask_login import current_user
 from wtforms_sqlalchemy.fields import QuerySelectField
-
-# from flask_wtf import RecaptchaField
-# from wtforms import SelectField, DateField
-# from wtforms.validators import URL
-# from chronos import log
+from chronos import log
 
 
 class ContactForm(FlaskForm):
@@ -89,6 +85,35 @@ class UserForm(FlaskForm):
                              render_kw={'class': field_css_class, 'placeholder': 'Password'})
     confirm_password = PasswordField('Repeat Password',
                                      render_kw={'class': field_css_class, 'placeholder': 'Repeat Password'})
+    submit = SubmitField('Save', render_kw={'class': 'btn btn-primary btn-lg'})
+
+
+class ProfileForm(FlaskForm):
+    from chronos.data_helper import get_themes
+
+    extra_classes = "was-validated"
+    css_class = ".form-horizontal.labels-left"
+    field_css_class = "form-control form-control-lg"
+    username = StringField('Username',
+                           [DataRequired()],
+                           render_kw={'class': field_css_class, 'placeholder': 'Username', 'autofocus': ''})
+    email = StringField('Email',
+                        [Email(message='Not a valid email address.'), DataRequired()],
+                        render_kw={'class': field_css_class, 'placeholder': 'Email'})
+    password = PasswordField('Password',
+                             [EqualTo('confirm_password', message='Passwords must match')],
+                             render_kw={'class': field_css_class, 'placeholder': 'Password'})
+    password.data = ""
+    confirm_password = PasswordField('Repeat Password',
+                                     render_kw={'class': field_css_class, 'placeholder': 'Repeat Password'})
+    confirm_password.data = ""
+    themes = []
+    for theme in get_themes():
+        themes.append([theme, theme])
+    if not themes:
+        themes = [('moon-base-alpha', 'moon-base-alpha')]
+    theme = SelectField('theme', choices=themes, render_kw={'class': css_class, 'placeholder': 'Theme'})
+
     submit = SubmitField('Save', render_kw={'class': 'btn btn-primary btn-lg'})
 
 

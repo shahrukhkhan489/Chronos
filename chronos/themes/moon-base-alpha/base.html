@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block head %}
+      <!-- Required meta tags -->
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      {% block styles %}
+        <!-- Bootstrap CSS -->
+        {{ bootstrap.load_css() }}
+      {% endblock %}
+    {% endblock %}
+  </head>
+  <body>
+    <!-- Navigation -->
+    <div class="bg-light">
+      <div class="container">
+        {{ nav.top.render('bootstrap') }}
+      </div>
+    </div>
+    <!-- Page content -->
+    <div class="container py-5 mb5">
+      {% block content %}{% endblock %}
+    </div>
+    {% block scripts %}
+    <!-- Optional JavaScript -->
+    {{ bootstrap.load_js() }}
+    {% endblock %}
+  </body>
+</html>

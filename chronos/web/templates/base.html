@@ -1,0 +1,13 @@
+{% extends theme('base.html') %}
+{% block styles %}
+{{ super() }}
+{% include 'includes/favicon.html' %}
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/js/go-back.js/') }}"></script>
+{% endblock %}
+{% block head %}
+{{ super() }}
+<title>Chronos - {% block title %}{% endblock %}</title>
+{% endblock %}

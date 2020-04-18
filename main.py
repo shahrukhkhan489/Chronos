@@ -28,7 +28,7 @@ def main():
     log.info("Example webhook message: {}".format(output))
     print()
     # start a thread with the server
-    log.info("creating server")
+    # log.info("creating server")
     threading.Thread(target=start_flask).start()
     sleep(1)
     # list the server with ngrok
