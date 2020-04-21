@@ -91,7 +91,7 @@ class UserForm(FlaskForm):
 class ProfileForm(FlaskForm):
     from chronos.data_helper import get_themes
 
-    extra_classes = "was-validated"
+    extra_classes = ""
     css_class = ".form-horizontal.labels-left"
     field_css_class = "form-control form-control-lg"
     username = StringField('Username',
@@ -112,7 +112,7 @@ class ProfileForm(FlaskForm):
         themes.append([theme, theme])
     if not themes:
         themes = [('moon-base-alpha', 'moon-base-alpha')]
-    theme = SelectField('theme', choices=themes, render_kw={'class': css_class, 'placeholder': 'Theme'})
+    theme = SelectField('Theme', choices=themes, render_kw={'class': field_css_class})
 
     submit = SubmitField('Save', render_kw={'class': 'btn btn-primary btn-lg'})
 

@@ -1,21 +1,18 @@
 import os
 import urllib.parse
-
 from flask import Flask, request
 from flask_bootstrap import Bootstrap
-from flask_login import LoginManager, current_user, user_logged_out, user_logged_in
+from flask_login import LoginManager, current_user, user_logged_out
 from flask_migrate import Migrate, MigrateCommand
 from flask_nav import Nav, register_renderer
-from flask_nav.elements import Navbar, View
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
 from flask_themer import Themer
 from flask_wtf import CSRFProtect
-# from flask_menu import Menu, register_menu
 from sqlalchemy.sql import ClauseElement
 from chronos.libs import tools
 from chronos.web.http_error import page_not_found
-from chronos.web.nav import Bootstrap3Renderer, Bootstrap4Renderer, NeonLightsRenderer
+from chronos.web.nav import Bootstrap3Renderer, Bootstrap4Renderer, NeonLightsRenderer, top_nav
 
 
 def init_db(database):
@@ -40,33 +37,6 @@ def init_db(database):
 
     database.Model.save = save
     database.Model.update = update
-
-
-def top_nav():
-    # user_id = login_manager.id_attribute
-    # log.info('__init__.top_nav() called; user_id = {}'.format(user_id))
-    if user_logged_in and hasattr(current_user, 'is_admin') and current_user.is_admin:
-        return Navbar('Chronos/Admin',
-                      View('Home', 'auth.index'),
-                      View('Dashboard', 'admin.dashboard'),
-                      View('Exchanges', 'ExchangeView:index'),
-                      View('Users', 'UserView:index'),
-                      View('API Keys', 'ApiKeyView:index'),
-                      View('Orders', 'user.orders'),
-                      View('Profile', 'user.profile'),
-                      View('Logout', 'auth.logout'))
-    elif user_logged_in and hasattr(current_user, 'is_admin'):
-        return Navbar('Chronos',
-                      View('Home', 'auth.index'),
-                      View('API Keys', 'ApiKeyView:index'),
-                      View('Orders', 'user.orders'),
-                      View('Profile', 'user.profile'),
-                      View('Logout', 'auth.logout'))
-    else:
-        return Navbar('Chronos',
-                      View('Home', 'auth.index'),
-                      View('Sign Up', 'auth.signup'),
-                      View('Login', 'auth.login'))
 
 
 db = SQLAlchemy()

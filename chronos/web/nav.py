@@ -5,6 +5,8 @@ https://github.com/mbr/flask-bootstrap/blob/master/flask_bootstrap/nav.py
 
 from hashlib import sha1
 from dominate import tags
+from flask_login import user_logged_in, current_user
+from flask_nav.elements import Navbar, View
 from flask_nav.renderers import Renderer
 
 
@@ -297,3 +299,30 @@ class NeonLightsRenderer(Renderer):
             item['class'] = 'active'
 
         return item
+
+
+def top_nav():
+    # user_id = login_manager.id_attribute
+    # log.info('__init__.top_nav() called; user_id = {}'.format(user_id))
+    if user_logged_in and hasattr(current_user, 'is_admin') and current_user.is_admin:
+        return Navbar('Chronos/Admin',
+                      View('Home', 'auth.index'),
+                      View('Dashboard', 'admin.dashboard'),
+                      View('Exchanges', 'ExchangeView:index'),
+                      View('Users', 'UserView:index'),
+                      View('API Keys', 'ApiKeyView:index'),
+                      View('Orders', 'user.orders'),
+                      View('Profile', 'user.profile'),
+                      View('Logout', 'auth.logout'))
+    elif user_logged_in and hasattr(current_user, 'is_admin'):
+        return Navbar('Chronos',
+                      View('Home', 'auth.index'),
+                      View('API Keys', 'ApiKeyView:index'),
+                      View('Orders', 'user.orders'),
+                      View('Profile', 'user.profile'),
+                      View('Logout', 'auth.logout'))
+    else:
+        return Navbar('Chronos',
+                      View('Home', 'auth.index'),
+                      View('Sign Up', 'auth.signup'),
+                      View('Login', 'auth.login'))

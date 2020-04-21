@@ -24,6 +24,11 @@ def index():
 @login_required
 def profile():
     form = ProfileForm()
+    if request.method == 'POST':
+        form.extra_classes = "was-validated"
+        form.password.data = request.form.get('password')
+        form.confirm_password.data = request.form.get('confirm_password')
+
     form.username.data = current_user.username
     form.email.data = current_user.email
     form.theme.data = current_user.theme or 'moon-base-alpha'
