@@ -4,11 +4,15 @@ import os
 import re
 import sys
 import time
+from ast import literal_eval
 from collections import OrderedDict
 from configparser import RawConfigParser
+from contextlib import suppress
 from datetime import datetime, timedelta
 from pathlib import Path
 import hashlib
+
+from cryptography.fernet import Fernet
 
 from chronos.libs import debug
 import psutil
@@ -327,3 +331,69 @@ def get_immediate_subdirectories(a_dir=os.curdir):
     :return: the found subdirectories (array)
     """
     return [f.name for f in os.scandir(a_dir) if f.is_dir()]
+
+
+def get_int(number):
+    """
+    Converts a numerical str into an integer.Return None, if the string is not an integer
+    https://stackoverflow.com/questions/1265665/how-can-i-check-if-a-string-represents-an-int-without-using-try-except
+    :param number: String representation of the number
+    :return: The int value of the string, e.g 0.0 return 0, or None when the string is not an integer (e.g. 0.1)
+    """
+    splits = number.split('.')
+    if len(splits) > 2:
+        # too many splits
+        return None
+    if len(splits) == 2 and splits[1]:
+        # handle decimal part recursively :-)
+        if get_int(splits[1]) != 0:
+            return None
+
+    int_part = splits[0].lstrip("+")
+    if int_part.startswith('-'):
+        # handle minus sign recursively :-)
+        return get_int(int_part[1:]) * -1
+    # successful 'and' returns last truth-y value (cast is always valid)
+    return int_part.isdigit() and int(int_part)
+
+
+def is_int(s):
+    with suppress(ValueError):
+        return isinstance(literal_eval(s), int)
+    return False
+
+
+def string_to_key(s):
+    """
+    See https://stackoverflow.com/questions/55105045/python-invalid-base64-encoded-string-number-of-data-characters-5-cannot-be-1
+    :param s:
+    :return:
+    """
+    import base64
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+    # password = b"password"
+    s = s.encode()
+    # s = b"blavla"
+    hkdf = HKDF(
+        algorithm=hashes.SHA256(),  # You can swap this out for hashes.MD5()
+        length=32,
+        salt=None,    # You may be able to remove this line but I'm unable to test
+        info=None,    # You may also be able to remove this line
+        backend=default_backend()
+    )
+    key = hkdf.derive(s)
+    return base64.urlsafe_b64encode(key)
+
+
+def decrypt(msg, password):
+    key = string_to_key(password)
+    cipher_suite = Fernet(key)
+    return cipher_suite.decrypt(msg)
+
+
+def encrypt(msg, password):
+    key = string_to_key(password)
+    cipher_suite = Fernet(key)
+    return cipher_suite.encrypt(msg)
