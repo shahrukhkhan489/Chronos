@@ -35,10 +35,10 @@ Modified by timelyart, timelyart@protonmail.com, https://github.com/timelyart
 from flask_classful import FlaskView, route
 from flask import render_template, request, redirect, url_for
 from os.path import join as path_join
+from chronos.libs.flask_helpers import set_boolean_values
 from ..permission import check_permission
 from flask_login import current_user
 from sqlalchemy.sql import text
-
 
 # noinspection PyUnusedLocal
 from chronos import log
@@ -112,6 +112,32 @@ class CrudView(FlaskView):
 
     def _success_redirect_url(self, item, prev=None):
         return self._url_for_index()
+
+    # @staticmethod
+    # def _set_boolean_values(form, item):
+    #     """
+    #     Checkboxes are not submitted unless they are checked. So, un-checking a WTFForm.BooleanField will not return a
+    #     false value. The workaround is to test if the name of the checkbox made it into the request. If not, we assume
+    #     that the checkbox is un-checked. If so, we can read the value of the checkbox, but it doesn't matter because it
+    #     should be True anyway.
+    #     NOTE: with 2+ checkboxes with the same name, the last checkbox will override the others.
+    #     :param form:
+    #     :param item:
+    #     :return:
+    #     """
+    #     if request.method == "POST":
+    #         for attr, value in vars(item).items():
+    #             if isinstance(value, bool) and hasattr(form, attr):
+    #                 checkbox = getattr(form, attr)
+    #                 checkbox_value = len(request.form.getlist(attr)) > 0  # check if the checkbox name is in the request
+    #                 setattr(checkbox, 'data', checkbox_value)
+    #     else:
+    #         for attr, value in vars(item).items():
+    #             if isinstance(value, bool):
+    #                 field = getattr(form, attr)
+    #                 if field and hasattr(field, 'data'):
+    #                     setattr(field, 'data', value)
+    #                 setattr(field, 'default', value)
 
     @classmethod
     def _template_path(cls, template_name):
@@ -211,7 +237,13 @@ class CrudView(FlaskView):
             return render_template('403.html')
         item = self.model.query.get_or_404(id_)
         form = self.form(request.form, obj=item)
+
+        # WTForms do not check/uncheck on the basis of the item's attribute value
+        set_boolean_values(form, item)
+
         if form.validate_on_submit():
+            # WTForms do not take into account that un-checked checkboxes will not POST when submitting a form
+            set_boolean_values(form, item)
             item.save_form(form, session=self.db_session)
             return redirect(self._success_redirect_url(item, 'edit'))
         return render_template(self._template_path(self.edit_template), form=form, **self._edit_extras(item))

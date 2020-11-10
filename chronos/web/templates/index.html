@@ -4,6 +4,7 @@
 {% block title %} CRUD list {% endblock %}
 {% block content %}
 <div class="container has-text-centered">
+    {{ current_user }}: {{ current_user.session_token }}
     {{ render_table(items, columns, is_editable, is_deletable) }}
 </div>
 {% endblock %}

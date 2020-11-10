@@ -39,6 +39,7 @@ def init_db(database):
     database.Model.update = update
 
 
+csrf = CSRFProtect()
 db = SQLAlchemy()
 init_db(db)
 login_manager = LoginManager()
@@ -47,7 +48,10 @@ manager = Manager()
 nav = Nav()
 themer = Themer()
 config = tools.get_config()
-log = tools.create_log()
+mode = 'a'  # append
+if config.getboolean('logging', 'clear_on_start_up'):
+    mode = 'w'  # overwrite
+log = tools.create_log(mode)
 log.setLevel(20)
 log.setLevel(config.getint('logging', 'level'))
 
@@ -60,13 +64,16 @@ def create_app():
     if config.has_option('database', 'connection_string'):
         from sqlalchemy_utils import create_database, database_exists
         connection_string = config.get('database', 'connection_string')
+        connect_args = {"options": "-c timezone=utc"}
         app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"connect_args": connect_args}
         app.config['DATABASE_CREATED'] = False
         if not database_exists(connection_string):
             create_database(connection_string)
             app.config['DATABASE_CREATED'] = True
 
+    csrf.init_app(app)
     # app.config.from_object('config.Config')
     app.register_error_handler(404, page_not_found)
 
@@ -82,7 +89,7 @@ def create_app():
     register_renderer(app, 'bootstrap', Bootstrap4Renderer)
     register_renderer(app, 'neon-lights', NeonLightsRenderer)
     themer.init_app(app)
-    CSRFProtect(app)
+    # CSRFProtect(app)
     Bootstrap(app)
 
     @login_manager.user_loader

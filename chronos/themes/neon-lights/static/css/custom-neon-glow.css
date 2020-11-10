@@ -1,0 +1,42 @@
+.table td {
+    padding: 0.3em;
+}
+
+table.dataTable {
+    border-top: none;
+}
+
+div.dataTables_wrapper div.dataTables_paginate a.paginate_button:hover,
+.dataTable td button > a,
+.dataTable td form > input {
+	color: white;
+	text-decoration: none;
+}
+
+.dataTable td button,
+.dataTable td form > input[type=submit] {
+	padding: 0.1 0.3rem;
+	font-size: 0.875rem;
+	background-color: #714cdf;
+	border-color: #714cdf;
+	display: inline-block;
+	font-weight: 400;
+	text-align: center;
+	vertical-align: middle;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	border-radius: 6px;
+	-webkit-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
+	transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
+	-o-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
+}
+
+.dataTable td button:hover,
+.dataTable td form > input[type=submit]:hover {
+	background-color: #572cd9;
+	border-color: #5126d2;
+}

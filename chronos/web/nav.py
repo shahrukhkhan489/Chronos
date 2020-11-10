@@ -307,19 +307,22 @@ def top_nav():
     if user_logged_in and hasattr(current_user, 'is_admin') and current_user.is_admin:
         return Navbar('Chronos/Admin',
                       View('Home', 'auth.index'),
+                      View('Balance', 'user.balance'),
+                      View('Orders', 'user.orders'),
+                      View('Profile', 'user.profile'),
+                      View('API Keys', 'ApiKeyView:index'),
                       View('Dashboard', 'admin.dashboard'),
                       View('Exchanges', 'ExchangeView:index'),
                       View('Users', 'UserView:index'),
-                      View('API Keys', 'ApiKeyView:index'),
-                      View('Orders', 'user.orders'),
-                      View('Profile', 'user.profile'),
+                      View('Theme - test', 'auth.theme_test'),
                       View('Logout', 'auth.logout'))
     elif user_logged_in and hasattr(current_user, 'is_admin'):
         return Navbar('Chronos',
                       View('Home', 'auth.index'),
-                      View('API Keys', 'ApiKeyView:index'),
+                      View('Balance', 'user.balance'),
                       View('Orders', 'user.orders'),
                       View('Profile', 'user.profile'),
+                      View('API Keys', 'ApiKeyView:index'),
                       View('Logout', 'auth.logout'))
     else:
         return Navbar('Chronos',

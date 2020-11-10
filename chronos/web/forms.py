@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from sqlalchemy import text
-from wtforms import StringField, SubmitField, PasswordField, BooleanField, SelectField
+from wtforms import StringField, SubmitField, PasswordField, BooleanField, SelectField, RadioField, HiddenField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from flask_login import current_user
 from wtforms_sqlalchemy.fields import QuerySelectField
@@ -25,6 +25,15 @@ class ContactForm(FlaskForm):
 
 
 class SignupForm(FlaskForm):
+    # from ..model import User
+    #
+    # user: User = None
+    # render_kw_enabled = {}
+    #
+    # def __init__(self, user: User):
+    #     super(UserForm, self).__init__()
+    #     self.user = user
+
     extra_classes = "was-validated"
     """Sign up for a user account."""
     css_class = ".form-horizontal.labels-left"
@@ -65,7 +74,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password',
                              [DataRequired(message='Please enter a password.')],
                              render_kw={'class': field_css_class, 'placeholder': 'Password'})
-    remember = BooleanField('Remember me', false_values=False, render_kw={'value': 'n'})
+    remember = BooleanField('Remember me', render_kw={'value': 'n'})
     submit = SubmitField('Send', render_kw={'class': 'btn btn-primary btn-lg'})
 
 
@@ -85,6 +94,10 @@ class UserForm(FlaskForm):
                              render_kw={'class': field_css_class, 'placeholder': 'Password'})
     confirm_password = PasswordField('Repeat Password',
                                      render_kw={'class': field_css_class, 'placeholder': 'Repeat Password'})
+    email_verified = BooleanField('Email Verified', render_kw={'class': 'form-control'})
+    is_admin = BooleanField('Admin', render_kw={'class': 'form-control'})
+    is_anonymous = BooleanField('Anonymous', render_kw={'class': 'form-control'})
+
     submit = SubmitField('Save', render_kw={'class': 'btn btn-primary btn-lg'})
 
 
@@ -100,12 +113,13 @@ class ProfileForm(FlaskForm):
     email = StringField('Email',
                         [Email(message='Not a valid email address.'), DataRequired()],
                         render_kw={'class': field_css_class, 'placeholder': 'Email'})
-    password = PasswordField('Password',
+    current_password = PasswordField('Current Password', render_kw={'class': field_css_class, 'placeholder': 'Current Password'})
+    password = PasswordField('New Password',
                              [EqualTo('confirm_password', message='Passwords must match')],
-                             render_kw={'class': field_css_class, 'placeholder': 'Password'})
+                             render_kw={'class': field_css_class, 'placeholder': 'New Password'})
     password.data = ""
-    confirm_password = PasswordField('Repeat Password',
-                                     render_kw={'class': field_css_class, 'placeholder': 'Repeat Password'})
+    confirm_password = PasswordField('Repeat New Password',
+                                     render_kw={'class': field_css_class, 'placeholder': 'Repeat New Password'})
     confirm_password.data = ""
     themes = []
     for theme in get_themes():
@@ -126,6 +140,9 @@ class ExchangeForm(FlaskForm):
                        render_kw={'class': field_css_class, 'placeholder': 'Name', 'autofocus': ''})
     ccxt_name = StringField('CCXT name', render_kw={'class': field_css_class, 'placeholder': 'CCXT name'})
     class_name = StringField('Class name', render_kw={'class': field_css_class, 'placeholder': 'Class name'})
+    enable_rate_limit = BooleanField('Enable rate limit', render_kw={'class': 'form-control'})
+    bypass_cloudflare = BooleanField('Bypass Cloudflare', render_kw={'class': 'form-control'})
+    enabled = BooleanField('Enabled', render_kw={'class': 'form-control'})
     submit = SubmitField('Save', render_kw={'class': 'btn btn-primary btn-lg'})
 
 

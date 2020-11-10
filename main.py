@@ -1,3 +1,7 @@
+import logging
+import os
+import subprocess
+import sys
 import threading
 from time import sleep
 from subprocess import check_output
@@ -11,7 +15,17 @@ def start_flask():
 
 
 def list_ngrok():
-    log.info(check_output("ngrok http 5000", shell=True))
+    log.info(check_output(["ngrok", "http", "5000"], shell=True))
+
+
+def list_pagekite():
+    # TODO implement pagekite after they have migrated to Python 3
+    # see https://pagekite.net/downloads
+    # log.info('pagekite not implemented')
+    filename = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "pagekite.py"
+    pagekite = subprocess.run(["python", filename, "timelyart.pagekite.me"], stdout=sys.stdout, stderr=sys.stderr)
+    log.info("The exit code was: %d" % pagekite.returncode)
+    # log.info(check_output(["python", filename, "timelyart.pagekite.me"], shell=True, text=True))
 
 
 def main():
@@ -23,7 +37,7 @@ def main():
 
     # test_kraken()
 
-    output = "{'exchange': '{{exchange}}', 'type': 'market', 'side': 'buy', 'amount': 1, 'symbol': '{{ticker}}', 'price': {{close}}, 'key': '" + key + "'}"
+    output = "{'exchange': '{{exchange}}', 'type': 'limit', 'side': 'buy', 'quantity': 1, 'symbol': '{{ticker}}', 'price': {{close}}, 'key': '" + key + "'}"
     print()
     log.info("Example webhook message: {}".format(output))
     print()
@@ -31,9 +45,11 @@ def main():
     # log.info("creating server")
     threading.Thread(target=start_flask).start()
     sleep(1)
-    # list the server with ngrok
-    threading.Thread(target=list_ngrok).start()
-    log.info("server listed with ngrok")
+    # print(useless_cat_call.stdout)
+    threading.Thread(target=list_pagekite()).start()
+    log.info("server listed with pagekite")
+    # threading.Thread(target=list_ngrok).start()
+    # log.info("server listed with ngrok")
 
 
 def test_kraken():

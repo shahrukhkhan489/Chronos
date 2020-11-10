@@ -97,6 +97,8 @@ class Json2Html:
                 return html_escape(text(json_input))
             else:
                 return text(json_input)
+        if type(json_input) is float:
+            return '<span style="float: right">' + text(json_input) + '</span>'
         if hasattr(json_input, 'items'):
             return self.convert_object(json_input)
         if hasattr(json_input, '__iter__') and hasattr(json_input, '__getitem__'):

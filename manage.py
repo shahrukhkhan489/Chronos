@@ -15,6 +15,7 @@ def update_records():
     # Exchanges
     get_or_create(Exchange, name='Kraken').update(ccxt_name='kraken', class_name=None).save()
     get_or_create(Exchange, name='Kraken Futures').update(ccxt_name=None, class_name='KrakenFutures').save()
+    get_or_create(Exchange, name='Binance').update(ccxt_name='binance', class_name=None).save()
     print("OK")
 
 
@@ -85,4 +86,14 @@ if __name__ == '__main__':
 
 
 def run():
-    app.run()
+    # TODO: load .orders cache of (ccxt) Exchange from database
+    app.run(port=5000)
+
+
+def on_exit():
+    """
+    Exit handler. Should be called atexit(), on exception
+    :return:
+    """
+    # TODO: save .orders cache of (ccxt) Exchange to database
+    pass

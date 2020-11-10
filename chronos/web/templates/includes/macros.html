@@ -53,8 +53,7 @@
                 {% endif %}
             {% endfor %}
         </form>
-    </div>
-{% endmacro %}
+    </div>{% endmacro %}
 
 {% macro render_navigation(items) %}
     {% if items %}
@@ -67,7 +66,7 @@
 {% endmacro %}
 
 {% macro render_table(items, columns, edit=False, delete=False) %}
-    <table class="js-sort-table" border="1">
+    <table class="table table-condensed table-bordered table-hover js-table" border="1">
         <thead>
             <tr>
                 {% if columns %}
@@ -75,10 +74,10 @@
                         <th>{{ columns[col] }}</th>
                     {% endfor %}
                     {% if edit and 'id' in columns %}
-                        <th></th>
+                        <th class="no-border"></th>
                     {% endif %}
                     {% if delete and 'id' in columns %}
-                        <th></th>
+                        <th class="no-border"></th>
                     {% endif %}
                 {% endif %}
             </tr>
@@ -91,10 +90,10 @@
                             <td>{{ item[col] }}</td>
                         {% endfor %}
                         {% if edit and item['id'] %}
-                            <td><button><a href="edit/{{ item['id'] }}">Edit</a></button></td>
+                            <td class="no-border"><button><a href="edit/{{ item['id'] }}">Edit</a></button></td>
                         {% endif %}
                         {% if delete and item['id'] %}
-                            <td>
+                            <td class="no-border">
                                 <form action="delete/{{ item['id'] }}" method="post">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <input type="submit" value="Delete">

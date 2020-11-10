@@ -1,11 +1,12 @@
 # File: libs.py
+import itertools
 import math
 import os
 import re
 import sys
 import time
 from ast import literal_eval
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from configparser import RawConfigParser
 from contextlib import suppress
 from datetime import datetime, timedelta
@@ -77,6 +78,7 @@ class Switch:
     def __enter__(self): return self
 
     # Allows traceback to occur
+    # noinspection PyShadowingBuiltins
     def __exit__(self, type, value, traceback): return False
 
     def __call__(self, *mconds): return self._val in mconds
@@ -358,7 +360,7 @@ def get_int(number):
 
 
 def is_int(s):
-    with suppress(ValueError):
+    with suppress(ValueError, SyntaxError):
         return isinstance(literal_eval(s), int)
     return False
 
@@ -374,7 +376,7 @@ def string_to_key(s):
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.hkdf import HKDF
     # password = b"password"
-    s = s.encode()
+    s = s.encode("UTF-8")
     # s = b"blavla"
     hkdf = HKDF(
         algorithm=hashes.SHA256(),  # You can swap this out for hashes.MD5()
@@ -388,12 +390,35 @@ def string_to_key(s):
 
 
 def decrypt(msg, password):
-    key = string_to_key(password)
+    key = password
+    if isinstance(msg, str):
+        msg = msg.encode('utf-8')
+        print(msg)
+    if isinstance(password, str):
+        key = string_to_key(password)
     cipher_suite = Fernet(key)
     return cipher_suite.decrypt(msg)
 
 
 def encrypt(msg, password):
-    key = string_to_key(password)
+    password = password
+    key = password
+    if isinstance(msg, str):
+        msg = msg.encode('utf-8')
+    if isinstance(password, str):
+        key = string_to_key(password)
     cipher_suite = Fernet(key)
     return cipher_suite.encrypt(msg)
+
+
+def utf8len(s):
+    return len(s.encode('utf-8'))
+
+
+def merge(shared_key, *iterables):
+    result = defaultdict(dict)
+    for dictionary in itertools.chain.from_iterable(iterables):
+        result[dictionary[shared_key]].update(dictionary)
+    for dictionary in result.values():
+        dictionary.pop(shared_key)
+    return result

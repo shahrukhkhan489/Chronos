@@ -1,7 +1,9 @@
-from flask import Blueprint, request, url_for, flash, Markup, render_template, make_response
+from cryptography.fernet import InvalidToken, Fernet
+from flask import Blueprint, request, url_for, flash, Markup, render_template, make_response, session
 from flask_login import login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import redirect
+from chronos.libs.tools import encrypt, decrypt
 from chronos.model import User
 from chronos import db, log
 from chronos.web.forms import LoginForm, SignupForm
@@ -28,7 +30,12 @@ def theme_test():
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
+    session_token = None
+
     form = LoginForm()
+    if form.remember.data:
+        form.email.data = request.form.get('email')
+
     if form.validate_on_submit():
         email = request.form.get('email')
         password = request.form.get('password')
@@ -37,7 +44,23 @@ def login():
         if not user or not check_password_hash(user.password, password):
             flash('Please check your login details and try again.', 'danger')
             return redirect(url_for('auth.login'))  # if user doesn't exist or password is wrong, reload the page
-        login_user(user, remember=remember)
+        login_user(user, remember=remember, force=True)
+
+        # load/generate token to encrypt sensitive date with
+        if user.token is None:   # if the user doesn't have a token, then save it
+            session_token = Fernet.generate_key()
+            user.token = encrypt(session_token, password)
+            user.save()
+        else:
+            try:
+                session_token = decrypt(user.token, password)
+            except InvalidToken as e:
+                log.exception(e)
+                pass
+
+        log.info("session_token: {}".format(session_token))
+        session['token'] = session_token
+        assert('token' in session and session['token'])
 
         # redirect to the previous page (if any), or to the user role's default
         if user.is_admin:
@@ -66,20 +89,29 @@ def signup():
         email = request.form.get('email')
         username = request.form.get('username')
         password = request.form.get('password')
+        session_token = Fernet.generate_key()
 
         user = User.query.filter_by(email=email).first()  # check if email address exists in database
         if user:  # leave a message if the email address exists
             flash(Markup('Email address already exists. Go to the <a href="login">login page</a>.'), 'danger')
             return redirect(url_for('auth.signup'))
+
         # noinspection PyArgumentList
         new_user = User(email=email,
                         username=username,
                         password=generate_password_hash(password, method='sha256'),
-                        is_anonymous=False)
-        # add the new user to the database
-        new_user.save(db.session)
-        login_user(new_user)
-        return redirect(url_for('user.profile'))
+                        token=encrypt(session_token, password))
+        session_token = decrypt(new_user.token, password)
+        session['token'] = session_token
+
+        if 'token' in session and session['token']:
+            # add the new user to the database
+            new_user.save()
+            login_user(new_user)
+            return redirect(url_for('user.index'))
+        else:
+            return render_template('signup.html', form=form)
+
     return render_template('signup.html', form=form)
 
 

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %} Balance {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content%}
+<div class="container">
+    <h1>Balance</h1>
+    {% if balances %}
+        {{ html|safe }}
+    {% else %}
+        No balance
+    {% endif %}
+</div>
+{% endblock %}

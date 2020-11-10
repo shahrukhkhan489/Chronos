@@ -6,16 +6,21 @@
 {% endblock %}
 {% block content%}
 <div class="container">
-    <h1>Orders</h1>
-    <h2>Open</h2>
+    <h1>Open Orders</h1>
     {% if open_orders %}
-        {{ open_orders }}
+        {% for exchange, result in open_orders.items() %}
+            <h3>{{ exchange|safe }}</h3>
+            {{ result|safe }}
+        {% endfor %}
     {% else %}
         No open orders
     {% endif %}
-    <h3>Closed</h3>
+    <h1>Closed Orders</h1>
     {% if closed_orders %}
-        {{ closed_orders }}
+        {% for exchange, result in closed_orders.items() %}
+            <h3>{{ exchange|safe }}</h3>
+            {{ result|safe }}
+        {% endfor %}
     {% else %}
         No closed orders
     {% endif %}
