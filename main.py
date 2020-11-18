@@ -14,18 +14,70 @@ def start_flask():
     manage.run()
 
 
-def list_ngrok():
-    log.info(check_output(["ngrok", "http", "5000"], shell=True))
+def tunnel():
+    """
+    Use a 3rd party process to open up Chronos to the cruel outside world
+    :return:
+    """
+    result = False
+
+    if 'pagekite' in config and 'enabled' in config['pagekite'] and config.getboolean('pagekite', 'enabled'):
+        if 'path' in config['pagekite'] and config['pagekite']['path']:
+            filepath = config.get("pagekite", "path")
+        else:
+            filepath = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "pagekite.py"
+        kite = ''
+        if 'kite' in config['pagekite'] and config['pagekite']['kite']:
+            kite = str(config.get("pagekite", "kite"))
+        if filepath and kite:
+            log.info('starting pagekite ...')
+            try:
+                threading.Thread(target=list_pagekite, args=[filepath, kite]).start()
+                log.info('pagekite {} started'.format(kite))
+                result = True
+            except Exception as e:
+                log.exception(e)
+    elif 'ngrok' in config and 'enabled' in config['ngrok'] and config.getboolean('ngrok', 'enabled'):
+        if 'path' in config['ngrok'] and config['ngrok']['path']:
+            filepath = config.get("ngrok", "path")
+        else:
+            filepath = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "ngrok"
+        protocol = ''
+        port = ''
+        if 'protocol' in config['ngrok'] and config['ngrok']['protocol']:
+            protocol = str(config.get('ngrok', 'protocol'))
+        if 'port' in config['ngrok'] and config['ngrok']['port']:
+            port = str(config.get('ngrok', 'port'))
+        log.info('starting ngrok ...')
+        try:
+            threading.Thread(target=list_ngrok, args=[filepath, protocol, port]).start()
+            log.info('ngrok started on {}://localhost:{}'.format(protocol, port))
+            result = True
+        except Exception as e:
+            log.exception(e)
+    else:
+        log.warning('no 3rd party tunneling software is installed and is enabled in chronos.cfg')
+    return result
 
 
-def list_pagekite():
-    # TODO implement pagekite after they have migrated to Python 3
-    # see https://pagekite.net/downloads
-    # log.info('pagekite not implemented')
-    filename = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "pagekite.py"
-    pagekite = subprocess.run(["python", filename, "timelyart.pagekite.me"], stdout=sys.stdout, stderr=sys.stderr)
-    log.info("The exit code was: %d" % pagekite.returncode)
-    # log.info(check_output(["python", filename, "timelyart.pagekite.me"], shell=True, text=True))
+def list_ngrok(filepath='ngrok', protocol='http', port='5000'):
+    ngrok = subprocess.run([filepath, protocol, port], stdout=sys.stdout, stderr=sys.stderr, text=True)
+    log.info("Ngrok stopped with exit code was: %d" % ngrok.returncode)
+    # log.info(check_output([filepath, protocol, port], shell=True))
+    # log.info(check_output(["ngrok", "http", "5000"], shell=True))
+
+
+def list_pagekite(filepath, kite):
+    """
+    Create a command line PageKite process to open up Chronos to the cruel outside world.
+    You will need to download 'pagekite.py' which you can find at https://pagekite.net/downloads and perform a first
+    time setup. Please, read their quickstart guide on how to do this.
+    :param filepath: path to 'pagekite.py' which you can download
+    :param kite: the name of your (sub)kite
+    :return:
+    """
+    pagekite = subprocess.run(["python", filepath, kite], stdout=sys.stdout, stderr=sys.stderr)
+    log.info("PageKite stopped with exit code was: %d" % pagekite.returncode)
 
 
 def main():
@@ -45,9 +97,11 @@ def main():
     # log.info("creating server")
     threading.Thread(target=start_flask).start()
     sleep(1)
-    # print(useless_cat_call.stdout)
-    threading.Thread(target=list_pagekite()).start()
-    log.info("server listed with pagekite")
+    # threading.Thread(target=tunnel()).start()
+    if tunnel():
+        log.info("Chronos is set up to receive webhook requests")
+    else:
+        log.warning('Chronos is not set up to receive webhook requests')
     # threading.Thread(target=list_ngrok).start()
     # log.info("server listed with ngrok")
 
