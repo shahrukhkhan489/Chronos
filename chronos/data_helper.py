@@ -1,19 +1,13 @@
 import ast
-import importlib
-# import inspect
 from datetime import datetime
-# from types import FrameType
-# from typing import cast
 import ccxt
 from .libs import alpaca
 import cfscrape
-# import jsonpickle as jsonpickle
-from ccxt.kraken import kraken
-from ccxt.binance import binance
 from flask import session, json
-from flask_login import current_user, AnonymousUserMixin
+from flask_login import current_user
 from . import log, db
-from .libs.tools import find_files_and_folders, get_immediate_subdirectories, is_int, merge
+from .libs.alpaca import Alpaca, AlpacaPaper
+from .libs.tools import find_files_and_folders, get_immediate_subdirectories, is_int
 from .model import Exchange
 
 user_objects = dict()
@@ -30,19 +24,19 @@ def send_order(data):
         user_id = data['chronos_id']
 
     result = False
-    if is_int(data['exchange']):
-        exchange = db.session.query(Exchange).filter_by(id=data['exchange']).first()
+    if is_int(data['platform']):
+        platform = db.session.query(Exchange).filter_by(id=data['platform']).first()
     else:
-        exchange = db.session.query(Exchange).filter_by(name=data['exchange']).first()
+        platform = db.session.query(Exchange).filter_by(name=data['platform']).first()
 
-    if exchange and exchange.is_ccxt():
+    if platform and platform.is_ccxt():
         try:
             # the following issue: ccxt expects symbols to be [base]/[quote] (e.g. BTC/USD) whilst TradingView returns [base][quote] (e.g. BTCUSD)
-            data['symbol'] = sanitize_symbol(data['symbol'], exchange)
+            data['symbol'] = sanitize_symbol(data['symbol'], platform)
             log.info('sending {}:{} {} {} {} {}'.format(data['exchange'].upper(), data['symbol'], data['type'], data['side'], data['quantity'], calc_price(data['price'])))
-            if symbol_exists(data['symbol'], exchange):
+            if symbol_exists(data['symbol'], platform):
                 # Send the order to the exchange, using the values from the tradingview alert.
-                result = exchange.create_order(data['symbol'], data['type'], data['side'], data['quantity'], calc_price(data['price']))
+                result = platform.create_order(data['symbol'], data['type'], data['side'], data['quantity'], calc_price(data['price']))
         # except ccxt.errors.AuthenticationError as auth_exception:
         #     log.warn("{} returned: invalid key/secret pair".format(data['exchange']))
         # except ccxt.errors.BadSymbol as bad_symbol_exception:
@@ -50,11 +44,12 @@ def send_order(data):
         # This is the last step, the response from the exchange will tell us if it made it and what errors pop up if not.
         except Exception as e:
             log.exception(e)
-        log.info('{}: {}'.format(data['exchange'], result))
-    elif exchange.class_name == 'Alpaca' or exchange.class_name == 'AlpacaPaper':
-        _alpaca = get_alpaca_exchange(exchange, user_id)
-        result = _alpaca.create_order(data['symbol'], data['quantity'], data['side'], data['type'], calc_price(data['price']))
-        log.info('{}: {}'.format(data['exchange'], result))
+        log.info('{}: {}'.format(data['platform'], result))
+    elif platform.class_name == 'Alpaca' or platform.class_name == 'AlpacaPaper':
+        _alpaca = get_alpaca_exchange(platform, user_id)
+        result = _alpaca.create_order(data)
+
+    log.info('{}: {}'.format(data['exchange'], result))
     return result
 
 
@@ -216,15 +211,12 @@ def update_balance(exchange, method, since=None, limit=None):
     result = []
     if exchange.is_ccxt():
         ccxt_exchange = get_ccxt_exchange(exchange)
-        # log.info("{} is of type {}".format(exchange.ccxt_name, type(ccxt_exchange)))
         log.info("{}.{}".format(type(ccxt_exchange), method))
         if since is None:
             since = ccxt_exchange.parse8601('2015-01-01 00:00:00Z')
         if since is datetime:
             since = since.timestamp()
         try:
-            # dt = datetime.fromtimestamp(since / 1000)
-            # log.info("{} from {}".format(method, dt))
             previous_since = None
             count = 0
             while since < ccxt_exchange.milliseconds() and since != previous_since:
@@ -238,25 +230,15 @@ def update_balance(exchange, method, since=None, limit=None):
                 if len(balance):
                     result = balance
                     count += len(balance)
-                    # since = max(orders[0]['timestamp'], orders[len(orders) - 1]['timestamp'])+1
-                    # # log.info(since)
-                    # for i in range(len(orders)):
-                    #     found = False
-                    #     for j in range(len(current_orders)):
-                    #         if current_orders[j]['id'] == orders[i]['id']:
-                    #             current_orders[j] = current_orders[i]
-                    #             found = True
-                    #             orders_updated = True
-                    #     if not found:
-                    #         current_orders.append(orders[i])
-                    #         orders_updated = True
-                    #     # log.info("found order {}? {}".format(orders[i]['id'], found))
                 else:
                     break
             log.info('balance updated')
 
         except Exception as e:
             log.exception(e)
+    elif str(exchange.class_name).startswith('Alpaca'):
+        _alpaca = get_alpaca_exchange(exchange)
+
     return result
 
 
@@ -276,7 +258,6 @@ def update_orders(exchange, method, current_orders, symbol=None, since=None, lim
 
     if exchange.is_ccxt() and (symbol is None or symbol_exists(symbol, exchange)):
         ccxt_exchange = get_ccxt_exchange(exchange)
-        # log.info("{} is of type {}".format(exchange.ccxt_name, type(ccxt_exchange)))
         log.info("{}.{}".format(type(ccxt_exchange), method))
         if since is None:
             if len(current_orders):
@@ -288,22 +269,17 @@ def update_orders(exchange, method, current_orders, symbol=None, since=None, lim
 
         try:
             dt = datetime.fromtimestamp(since / 1000)
-            # log.info("{} from {}".format(method, dt))
             previous_since = None
             count = 0
             while since < ccxt_exchange.milliseconds() and since != previous_since:
                 previous_since = since
                 class_method = 'ccxt_exchange.'+method
-                # log.info(class_method)
                 # get the data from the exchange
                 orders = eval(class_method)(symbol, since, limit, extra_params)
-                # log.info(orders)
-                # exit(0)
                 # update the exchange's cache with the information
                 if len(orders):
                     count += len(orders)
                     since = max(orders[0]['timestamp'], orders[len(orders) - 1]['timestamp'])+1
-                    # log.info(since)
                     for i in range(len(orders)):
                         found = False
                         for j in range(len(current_orders)):
@@ -314,11 +290,9 @@ def update_orders(exchange, method, current_orders, symbol=None, since=None, lim
                         if not found:
                             current_orders.append(orders[i])
                             orders_updated = True
-                        # log.info("found order {}? {}".format(orders[i]['id'], found))
                 else:
                     break
             log.info('updated {} orders from {}'.format(count, dt))
-            # log.info(current_orders)
 
         except Exception as e:
             log.exception(e)
@@ -432,6 +406,7 @@ def get_alpaca_exchange(exchange: Exchange, user_id=None):
     if exchange.class_name not in user_objects[user_id]['exchanges']:
         settings = get_exchange_settings(exchange, user_id)
         alpaca_exchange = getattr(alpaca, exchange.class_name)(settings['key'], settings['secret'])
+        alpaca_exchange.load_markets()
         user_objects[user_id]['exchanges'][exchange.class_name] = alpaca_exchange
     return user_objects[user_id]['exchanges'][exchange.class_name]
 
